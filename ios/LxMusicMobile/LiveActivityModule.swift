@@ -12,8 +12,15 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     private var songName = ""
     private var artist = ""
     private var currentFontSize = 15
-    // 缓存：Activity 创建前的歌词，创建后立即写入
     private var pendingLyric = ""
+
+    // 结束所有同类 Live Activity（确保锁屏只保留一个）
+    private func endAllActivities() async {
+        for activity in Activity<LyricsActivityAttributes>.activities {
+            await activity.end(dismissalPolicy: .immediate)
+        }
+        currentActivity = nil
+    }
 
     // 启动灵动岛歌词 Live Activity（Promise，确保创建完成后才 resolve）
     @objc(startLyricsActivity:artist:fontSize:resolve:reject:)
@@ -24,14 +31,10 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         self.artist = artist
         self.currentFontSize = fontSize
 
-        let oldActivity = currentActivity
-        currentActivity = nil
-
         Task {
-            // 先结束旧 Activity（确保同时只有一个）
-            await oldActivity?.end(dismissalPolicy: .immediate)
+            // 结束所有同类 Activity（确保同时只有一个）
+            await endAllActivities()
 
-            // 再创建新的，初始歌词用歌曲名（无歌词时也显示）
             let initLyric = pendingLyric.isEmpty ? songName : pendingLyric
             let attributes = LyricsActivityAttributes(id: UUID().uuidString)
             let state = LyricsActivityAttributes.ContentState(
@@ -61,9 +64,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
         let displayLyric = lyric.isEmpty ? songName : lyric
         guard let activity = currentActivity else {
-            // Activity 还没创建，缓存歌词，创建后写入
             pendingLyric = displayLyric
-            NSLog("[LiveActivity] 缓存歌词: \(displayLyric)")
             return
         }
         pendingLyric = ""
@@ -80,7 +81,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 更新字号（保留当前歌词，不重置）
+    // 更新字号（保留当前歌词）
     @objc(updateFontSize:)
     func updateFontSize(fontSize: Int) {
         self.currentFontSize = fontSize
@@ -98,19 +99,18 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 结束 Live Activity
+    // 结束所有 Live Activity
     @objc(endLyricsActivity)
     func endLyricsActivity() {
         Task {
-            await currentActivity?.end(dismissalPolicy: .immediate)
-            currentActivity = nil
+            await endAllActivities()
             pendingLyric = ""
         }
     }
 
     // 检查灵动岛是否可用
     @objc(isAvailable:reject:)
-    func isAvailable(resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    func isAvailable(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         resolve(ActivityAuthorizationInfo().areActivitiesEnabled)
     }
 }
