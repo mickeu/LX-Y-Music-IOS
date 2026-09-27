@@ -18,11 +18,6 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-LxMusicMobile-LxMusicMobileTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-LxMusicMobile-LxMusicMobileTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		F99DB87F7E85485BA02586C2 /* LyricsActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E27996FBC648069410D187 /* LyricsActivityAttributes.swift */; };
-		AFB2B8F79ED749A792828CF4 /* LyricsLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72635EBB832A4E6494B1E642 /* LyricsLiveActivity.swift */; };
-		1EE5646DD12E46EDBF941C30 /* LxMusicWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C059C094267490F82193ED2 /* LxMusicWidgetBundle.swift */; };
-		A2781C2E992245F48A2EA6A3 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 89AE1B5E3B7549949997712E /* Info.plist */; };
-		A7A9C324D7994691BBE24BE5 /* LxMusicWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9FCBBA2E719249FD9B93295E /* LxMusicWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,13 +27,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = LxMusicMobile;
-		};
-		067C8C9D9F304E3E80938D1B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9FE71B1A5C200B7A4D7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C9483DE65B4B40A783A85083;
-			remoteInfo = LxMusicWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -63,11 +51,6 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LxMusicMobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-LxMusicMobile-LxMusicMobileTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LxMusicMobile-LxMusicMobileTests.release.xcconfig"; path = "Target Support Files/Pods-LxMusicMobile-LxMusicMobileTests/Pods-LxMusicMobile-LxMusicMobileTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		9FCBBA2E719249FD9B93295E /* LxMusicWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LxMusicWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		51E27996FBC648069410D187 /* LyricsActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsActivityAttributes.swift; sourceTree = "<group>"; };
-		72635EBB832A4E6494B1E642 /* LyricsLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsLiveActivity.swift; sourceTree = "<group>"; };
-		6C059C094267490F82193ED2 /* LxMusicWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LxMusicWidgetBundle.swift; sourceTree = "<group>"; };
-		89AE1B5E3B7549949997712E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,13 +69,6 @@
 				11D2C601B4A24A5E9B5B0001 /* CoreMotion.framework in Frameworks */,
 				22D0B002A0F340D5B1E6A003 /* JavaScriptCore.framework in Frameworks */,
 				0C80B921A6F3F58F76C31292 /* libPods-LxMusicMobile.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4E0EACD1A6C847DAB1C98F87 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,7 +96,6 @@
 			isa = PBXGroup;
 			children = (
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
-				52AE0FDBCAB548A1B378488E /* LxMusicWidget */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				11F1A0A5A0F340D5B1E6A001 /* icomoon.ttf */,
@@ -185,17 +160,6 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		52AE0FDBCAB548A1B378488E /* LxMusicWidget */ = {
-			isa = PBXGroup;
-			children = (
-				51E27996FBC648069410D187 /* LyricsActivityAttributes.swift */,
-				72635EBB832A4E6494B1E642 /* LyricsLiveActivity.swift */,
-				6C059C094267490F82193ED2 /* LxMusicWidgetBundle.swift */,
-				89AE1B5E3B7549949997712E /* Info.plist */,
-			);
-			path = LxMusicWidget;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -235,29 +199,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				61E8D934A16142B8A50F791A /* PBXTargetDependency */,
 			);
 			name = LxMusicMobile;
 			productName = LxMusicMobile;
 			productReference = 13B07F961A680F5B00A75B9A /* LxMusicMobile.app */;
 			productType = "com.apple.product-type.application";
-		};
-		C9483DE65B4B40A783A85083 /* LxMusicWidget */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 6A3B5283C3F748FDB4CC2F2C /* Build configuration list for PBXNativeTarget "LxMusicWidget" */;
-			buildPhases = (
-				01F530FC755942E39EF6F004 /* Sources */,
-				4E0EACD1A6C847DAB1C98F87 /* Frameworks */,
-				4D270E913F0F4AA2B931D577 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = LxMusicWidget;
-			productName = LxMusicWidget;
-			productReference = 9FCBBA2E719249FD9B93295E /* LxMusicWidget.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -311,14 +257,6 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				11F1A0A6A0F340D5B1E6A001 /* icomoon.ttf in Resources */,
 				22D0B001A0F340D5B1E6A003 /* user-api-preload.js in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4D270E913F0F4AA2B931D577 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A2781C2E992245F48A2EA6A3 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -473,16 +411,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		01F530FC755942E39EF6F004 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F99DB87F7E85485BA02586C2 /* LyricsActivityAttributes.swift in Sources */,
-				AFB2B8F79ED749A792828CF4 /* LyricsLiveActivity.swift in Sources */,
-				1EE5646DD12E46EDBF941C30 /* LxMusicWidgetBundle.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -490,11 +418,6 @@
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* LxMusicMobile */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
-		};
-		61E8D934A16142B8A50F791A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C9483DE65B4B40A783A85083 /* LxMusicWidget */;
-			targetProxy = 067C8C9D9F304E3E80938D1B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -739,50 +662,6 @@
 			};
 			name = Release;
 		};
-		35E91F3E117743CEBFCCB0E6 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = LxMusicWidget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.LX-YMusic.shuhao.LxMusicWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		DC3550F7F24846D2B3F45B54 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_IDENTITY = "";
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = LxMusicWidget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.LX-YMusic.shuhao.LxMusicWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -809,15 +688,6 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		6A3B5283C3F748FDB4CC2F2C /* Build configuration list for PBXNativeTarget "LxMusicWidget" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				35E91F3E117743CEBFCCB0E6 /* Debug */,
-				DC3550F7F24846D2B3F45B54 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
