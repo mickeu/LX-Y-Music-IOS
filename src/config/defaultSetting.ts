@@ -100,6 +100,7 @@ const defaultSetting: LX.AppSetting = {
   'player.isS2t': true,
   'player.isShowBluetoothLyric': false,
   'player.isDynamicIslandLyric': false,
+  'player.isLiveActivityEnabled': false,
   'player.dynamicIslandLyricFontSize': 15,
   'player.autoPlayOnReturn': false,
   'player.enableAutoToggleSource': true,

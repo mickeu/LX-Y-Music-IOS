@@ -486,6 +486,7 @@
   "setting_play_show_bluetooth_lyric": "显示蓝牙歌词",
   "setting_play_dynamic_island_lyric": "灵动岛歌词（实时滚动）",
   "setting_play_dynamic_island_lyric_font_size": "灵动岛歌词字号",
+  "setting_play_live_activity": "实时活动",
   "setting_play_show_notification_image": "在通知栏显示歌曲专辑封面图片",
   "setting_play_show_roma": "显示歌词罗马音（如果可用）",
   "setting_play_show_translation": "显示歌词翻译（如果可用）",

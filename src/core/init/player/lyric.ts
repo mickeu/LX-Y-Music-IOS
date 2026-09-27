@@ -72,7 +72,7 @@ export default async (setting: LX.AppSetting) => {
       void updateRemoteLyric(text)
     }
     // 灵动岛歌词：逐行同步到 Live Activity
-    if (settingState.setting['player.isDynamicIslandLyric']) {
+    if (settingState.setting['player.isDynamicIslandLyric'] && settingState.setting['player.isLiveActivityEnabled']) {
       void updateLiveActivityLyric(text, '', playerState.isPlay).catch(() => {})
     }
   })
@@ -84,13 +84,13 @@ export default async (setting: LX.AppSetting) => {
   global.app_event.on('musicToggled', () => {
     stop()
     // 切歌时重启灵动岛 Live Activity
-    if (settingState.setting['player.isDynamicIslandLyric']) {
+    if (settingState.setting['player.isDynamicIslandLyric'] && settingState.setting['player.isLiveActivityEnabled']) {
       void stopDynamicIslandLyric().then(() => startDynamicIslandLyric())
     }
   })
   global.app_event.on('lyricUpdated', setLyric)
   global.app_event.on('lyricUpdated', () => {
-    if (settingState.setting['player.isDynamicIslandLyric']) {
+    if (settingState.setting['player.isDynamicIslandLyric'] && settingState.setting['player.isLiveActivityEnabled']) {
       void startDynamicIslandLyric()
     }
   })

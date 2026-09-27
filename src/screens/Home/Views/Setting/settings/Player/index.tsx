@@ -19,6 +19,7 @@ import IsEnableFailureStrategy from './IsEnableFailureStrategy'
 import FailureStrategy from './FailureStrategy'
 import IsAutoPlayOnReturn from './IsAutoPlayOnReturn'
 import IsDynamicIslandLyric from './IsDynamicIslandLyric'
+import IsLiveActivityEnabled from './IsLiveActivityEnabled'
 import DynamicIslandLyricFontSize from './DynamicIslandLyricFontSize'
 import { useI18n } from '@/lang'
 
@@ -38,6 +39,7 @@ export default memo(() => {
       <IsShowLyricRoma />
       <IsS2T />
       <IsDynamicIslandLyric />
+      <IsLiveActivityEnabled />
       <DynamicIslandLyricFontSize />
       <ClearCache />
       <IsEnableAutoToggleSource />
