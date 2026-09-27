@@ -80,7 +80,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 更新字号
+    // 更新字号（保留当前歌词，不重置）
     @objc(updateFontSize:)
     func updateFontSize(fontSize: Int) {
         self.currentFontSize = fontSize
@@ -88,7 +88,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         let state = LyricsActivityAttributes.ContentState(
             songName: songName,
             artist: artist,
-            currentLyric: songName,
+            currentLyric: pendingLyric.isEmpty ? songName : pendingLyric,
             nextLyric: "",
             fontSize: fontSize,
             isPlaying: true

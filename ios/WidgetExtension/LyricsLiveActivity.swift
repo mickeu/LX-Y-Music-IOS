@@ -19,10 +19,13 @@ struct LyricsLiveActivity: Widget {
                         Image(systemName: context.state.isPlaying ? "music.note" : "pause.circle.fill")
                             .foregroundColor(.green)
                     }
+                    // 歌词：用 fontSize，fixedSize+clipped 去掉 ...
                     Text(context.state.currentLyric)
                         .font(.system(size: CGFloat(context.state.fontSize), weight: .medium))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
                         .lineLimit(2)
                     if !context.state.nextLyric.isEmpty {
                         Text(context.state.nextLyric)
@@ -54,67 +57,72 @@ struct LyricsLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
+                    // 歌词用用户设置的 fontSize，不截断
                     Text(context.state.currentLyric)
                         .font(.system(size: CGFloat(context.state.fontSize), weight: .medium))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
                         .lineLimit(2)
                 }
             } compactLeading: {
-                // 紧凑模式左侧：图标
                 Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
                     .font(.system(size: 12))
                     .foregroundColor(.green)
             } compactTrailing: {
-                // 紧凑模式右侧：歌词滚动
-                // 用 TimelineView 实现从右往左滚动
-                RollingText(text: context.state.currentLyric, fontSize: 11, maxWidth: 120)
+                // 紧凑模式：歌词从右往左滚动，不带 ...
+                ScrollingLyric(text: context.state.currentLyric, fontSize: 11, maxWidth: 120)
             } minimal: {
-                // 最小模式：只显示3个字，滚动
-                RollingText(text: context.state.currentLyric, fontSize: 9, maxWidth: 36, maxChars: 3)
+                // 最小模式：歌词滚动，不带 ...，根据字号自动裁剪
+                ScrollingLyric(text: context.state.currentLyric, fontSize: 9, maxWidth: 36)
             }
         }
     }
 }
 
-// 滚动文本组件：从右往左滚动显示
-struct RollingText: View {
+// 滚动歌词：fixedSize + clipped 去掉 ...，TimelineView 从右往左滚动
+struct ScrollingLyric: View {
     let text: String
     let fontSize: CGFloat
     let maxWidth: CGFloat
-    var maxChars: Int? = nil
-
-    var displayText: String {
-        if let maxChars = maxChars, text.count > maxChars {
-            return String(text.prefix(maxChars))
-        }
-        return text
-    }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.3)) { timeline in
-            let offset = calculateOffset(date: timeline.date)
-            Text(displayText)
-                .font(.system(size: fontSize, weight: .medium))
-                .foregroundColor(.white)
-                .lineLimit(1)
-                .frame(maxWidth: maxWidth)
-                .clipped()
-                .offset(x: offset)
+            let textWidth = estimateWidth()
+            if textWidth <= maxWidth {
+                // 文字短于容器，居中显示
+                Text(text)
+                    .font(.system(size: fontSize, weight: .medium))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(maxWidth: maxWidth)
+                    .clipped()
+            } else {
+                // 文字长于容器，从右往左滚动
+                let offset = calcOffset(date: timeline.date, textWidth: textWidth)
+                Text(text)
+                    .font(.system(size: fontSize, weight: .medium))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .offset(x: offset)
+                    .frame(maxWidth: maxWidth, alignment: .leading)
+                    .clipped()
+            }
         }
     }
 
-    // 计算滚动偏移量：从右往左循环
-    private func calculateOffset(date: Date) -> CGFloat {
-        let textWidth = estimateTextWidth()
-        if textWidth <= maxWidth { return 0 }
+    private func calcOffset(date: Date, textWidth: CGFloat) -> CGFloat {
         let cycle = textWidth + maxWidth
-        let elapsed = date.timeIntervalSinceReferenceDate
-        let progress = CGFloat(elapsed.truncatingRemainder(dividingBy: Double(cycle / 20))) / (cycle / 20)
-        return maxWidth - progress * cycle
+        let speed: CGFloat = 15
+        let elapsed = CGFloat(date.timeIntervalSinceReferenceDate)
+        let progress = (elapsed * speed).truncatingRemainder(dividingBy: Double(cycle))
+        return maxWidth - progress
     }
 
-    private func estimateTextWidth() -> CGFloat {
-        return CGFloat(displayText.count) * fontSize * 0.6
+    private func estimateWidth() -> CGFloat {
+        return CGFloat(text.count) * fontSize * 0.55
     }
 }
