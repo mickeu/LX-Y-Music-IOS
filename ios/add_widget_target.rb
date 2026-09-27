@@ -28,7 +28,12 @@ widget_target.resources_build_phase.add_file_reference(plist_ref, true)
 
 # 嵌入主 App
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
-embed_phase = main_target.new_copy_files_phase('Embed App Extensions', :embed_app_extensions)
+# 查找或创建 Embed App Extensions phase
+embed_phase = main_target.copy_files_build_phases.find { |p| p.name == 'Embed App Extensions' }
+if embed_phase.nil?
+  embed_phase = main_target.new_copy_files_build_phase('Embed App Extensions')
+  embed_phase.dst_subfolder_spec = Xcodeproj::Constants::COPY_FILES_DST_SUBFOLDER_SPEC[:embed_app_extensions]
+end
 copy_ref = embed_phase.add_file_reference(widget_target.product_reference, true)
 copy_ref.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
 
