@@ -8,8 +8,6 @@ import CheckBoxItem from '../../components/CheckBoxItem'
 import {
   startLyricsActivity,
   endLyricsActivity,
-  updateLiveActivityFontSize,
-  isLiveActivityAvailable,
 } from '@/utils/nativeModules/liveActivity'
 import playerState from '@/store/player/state'
 import settingState from '@/store/setting/state'
@@ -21,8 +19,6 @@ export default memo(() => {
   const onToggle = async (val: boolean) => {
     updateSetting({ 'player.isDynamicIslandLyric': val })
     if (val) {
-      const ok = await isLiveActivityAvailable()
-      if (!ok) return
       const info = playerState.musicInfo
       const fontSize = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
       await startLyricsActivity(info.name || '', info.singer || '', fontSize)

@@ -16,15 +16,10 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     // 启动灵动岛歌词 Live Activity
     @objc(startLyricsActivity:artist:fontSize:)
     func startLyricsActivity(songName: String, artist: String, fontSize: Int) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            NSLog("[LiveActivity] 灵动岛权限未开启")
-            return
-        }
         self.songName = songName
         self.artist = artist
         self.currentFontSize = fontSize
 
-        // 停止之前的
         endLyricsActivity()
 
         let attributes = LyricsActivityAttributes(id: UUID().uuidString)
@@ -50,7 +45,10 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     // 更新歌词
     @objc(updateLyric:nextLyric:isPlaying:)
     func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
-        guard let activity = currentActivity else { return }
+        guard let activity = currentActivity else {
+            NSLog("[LiveActivity] updateLyric 但 activity 为 nil，跳过")
+            return
+        }
         let state = LyricsActivityAttributes.ContentState(
             songName: songName,
             artist: artist,
@@ -76,23 +74,6 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
             nextLyric: "",
             fontSize: fontSize,
             isPlaying: true
-        )
-        Task {
-            await activity.update(.init(state: state, staleDate: nil))
-        }
-    }
-
-    // 更新播放状态
-    @objc(updatePlaying:)
-    func updatePlaying(isPlaying: Bool) {
-        guard let activity = currentActivity else { return }
-        let state = LyricsActivityAttributes.ContentState(
-            songName: songName,
-            artist: artist,
-            currentLyric: "",
-            nextLyric: "",
-            fontSize: currentFontSize,
-            isPlaying: isPlaying
         )
         Task {
             await activity.update(.init(state: state, staleDate: nil))

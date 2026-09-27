@@ -39,16 +39,15 @@ export const init = async () => {
 let dynamicIslandLyricHookActive = false
 const dynamicIslandLyricHook = (line: number, text: string) => {
   if (!settingState.setting['player.isDynamicIslandLyric']) return
-  if (!settingState.setting['player.isLiveActivityEnabled']) return
   if (!dynamicIslandLyricHookActive) return
-  updateLiveActivityLyric(text, '', playerState.isPlay).catch(() => {})
+  const lyricText = text || playerState.musicInfo.name || ''
+  updateLiveActivityLyric(lyricText, '', playerState.isPlay).catch(() => {})
 }
 
 // 启动/停止灵动岛 Live Activity
 export const startDynamicIslandLyric = async () => {
   const enabled = settingState.setting['player.isDynamicIslandLyric']
-  const liveActivityEnabled = settingState.setting['player.isLiveActivityEnabled']
-  if (!enabled || !liveActivityEnabled) return
+  if (!enabled) return
   const info = playerState.musicInfo
   const fontSize = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
   await startLyricsActivity(info.name || '', info.singer || '', fontSize)

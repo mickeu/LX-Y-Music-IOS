@@ -65,15 +65,18 @@ export default async (setting: LX.AppSetting) => {
     })
   }
   onLyricLinePlay(({ text, extendedLyrics }) => {
-    if (!settingState.setting['player.isShowBluetoothLyric']) return
-    if (!text && !state.isPlaying) {
-      void updateRemoteLyric()
-    } else {
-      void updateRemoteLyric(text)
+    // 蓝牙歌词（独立逻辑，不影响灵动岛）
+    if (settingState.setting['player.isShowBluetoothLyric']) {
+      if (!text && !state.isPlaying) {
+        void updateRemoteLyric()
+      } else {
+        void updateRemoteLyric(text)
+      }
     }
-    // 灵动岛歌词：逐行同步到 Live Activity
-    if (settingState.setting['player.isDynamicIslandLyric'] && settingState.setting['player.isLiveActivityEnabled']) {
-      void updateLiveActivityLyric(text, '', playerState.isPlay).catch(() => {})
+    // 灵动岛歌词（独立逻辑，不依赖蓝牙歌词开关）
+    if (settingState.setting['player.isDynamicIslandLyric']) {
+      const lyricText = text || playerState.musicInfo.name || ''
+      void updateLiveActivityLyric(lyricText, '', playerState.isPlay).catch(() => {})
     }
   })
 
@@ -84,13 +87,13 @@ export default async (setting: LX.AppSetting) => {
   global.app_event.on('musicToggled', () => {
     stop()
     // 切歌时重启灵动岛 Live Activity
-    if (settingState.setting['player.isDynamicIslandLyric'] && settingState.setting['player.isLiveActivityEnabled']) {
+    if (settingState.setting['player.isDynamicIslandLyric']) {
       void stopDynamicIslandLyric().then(() => startDynamicIslandLyric())
     }
   })
   global.app_event.on('lyricUpdated', setLyric)
   global.app_event.on('lyricUpdated', () => {
-    if (settingState.setting['player.isDynamicIslandLyric'] && settingState.setting['player.isLiveActivityEnabled']) {
+    if (settingState.setting['player.isDynamicIslandLyric']) {
       void startDynamicIslandLyric()
     }
   })
