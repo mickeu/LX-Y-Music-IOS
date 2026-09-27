@@ -14,11 +14,11 @@ end
   ref = project.new_file_reference(file, "WidgetExtension/#{file}")
   widget_target.source_build_phase.add_file_reference(ref, true)
 end
-plist_ref = project.new_file_reference('Info.plist', 'LxMusicWidget/Info.plist')
+plist_ref = project.new_file_reference('Info.plist', 'WidgetExtension/Info.plist')
 widget_target.resources_build_phase.add_file_reference(plist_ref, true)
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
 embed_phase = main_target.build_phase('Embed App Extensions') || main_target.new_copy_files_phase('Embed App Extensions', :embed_app_extensions)
 copy_ref = embed_phase.add_file_reference(widget_target.product_reference, true)
 copy_ref.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
 project.save
-puts 'LxMusicWidget target added successfully'
+puts 'WidgetExtension target added successfully'

@@ -1,10 +1,11 @@
 import { memo } from 'react'
-import { View, Text, Slider } from 'react-native'
+import { View, Text } from 'react-native'
 import { useI18n } from '@/lang'
 import { useSettingValue } from '@/store/setting/hook'
 import { updateSetting } from '@/core/common'
 import { createStyle } from '@/utils/tools'
 import { updateLiveActivityFontSize } from '@/utils/nativeModules/liveActivity'
+import Slider, { type SliderProps } from '../../components/Slider'
 
 export default memo(() => {
   const t = useI18n()
@@ -22,13 +23,11 @@ export default memo(() => {
       <View style={styles.row}>
         <Text style={styles.value}>{fontSize}px</Text>
         <Slider
-          style={styles.slider}
           minimumValue={10}
           maximumValue={22}
           step={1}
           value={fontSize}
           onSlidingComplete={onSlidingComplete}
-          minimumTrackTintColor="#07c556"
         />
       </View>
     </View>
@@ -40,5 +39,5 @@ const styles = createStyle({
   label: { color: '#333', fontSize: 15, marginBottom: 6 },
   row: { flexDirection: 'row', alignItems: 'center' },
   value: { width: 50, fontSize: 13, color: '#07c556' },
-  slider: { flex: 1, marginLeft: 8 },
+  slider: { flex: 1, marginLeft: 8, maxWidth: 300 },
 })
