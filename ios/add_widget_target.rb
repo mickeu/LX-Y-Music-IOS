@@ -27,16 +27,6 @@ plist_ref = widget_group.new_reference('Info.plist')
 
 # 嵌入主 App
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
-# 查找或创建 Embed App Extensions phase
-embed_phase = main_target.copy_files_build_phases.find { |p| p.name == 'Embed App Extensions' }
-if embed_phase.nil?
-  embed_phase = main_target.new_copy_files_build_phase('Embed App Extensions')
-  embed_phase.dst_subfolder_spec = '10' # embed_app_extensions
-end
-copy_ref = embed_phase.add_file_reference(widget_target.product_reference, true)
-copy_ref.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
-
-# 添加 target dependency
 main_target.add_dependency(widget_target)
 
 project.save
