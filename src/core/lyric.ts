@@ -35,12 +35,23 @@ export const init = async () => {
   addPlayHook(dynamicIslandLyricHook)
 }
 
+// 清理歌词文本：去除 LRC 时间标记、HTML 标签、多余空白
+const cleanLyricText = (text: string): string => {
+  if (!text) return ''
+  // 去除 LRC 时间标记 [mm:ss.xxx]
+  let cleaned = text.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '')
+  // 去除 HTML 标签
+  cleaned = cleaned.replace(/<[^>]+>/g, '')
+  // 去除首尾空白
+  return cleaned.trim()
+}
+
 // 灵动岛歌词 hook 函数
 let dynamicIslandLyricHookActive = false
 const dynamicIslandLyricHook = (line: number, text: string) => {
   if (!settingState.setting['player.isDynamicIslandLyric']) return
   if (!dynamicIslandLyricHookActive) return
-  const lyricText = text || playerState.musicInfo.name || ''
+  const lyricText = cleanLyricText(text) || playerState.musicInfo.name || ''
   updateLiveActivityLyric(lyricText, '', playerState.isPlay).catch(() => {})
 }
 
@@ -50,6 +61,7 @@ export const startDynamicIslandLyric = async () => {
   if (!enabled) return
   const info = playerState.musicInfo
   const fontSize = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
+  // 等待 Activity 创建完成再激活 hook（避免 currentActivity 为 nil 时更新丢失）
   await startLyricsActivity(info.name || '', info.singer || '', fontSize)
   dynamicIslandLyricHookActive = true
 }
