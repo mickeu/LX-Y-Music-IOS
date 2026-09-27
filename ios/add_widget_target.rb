@@ -36,20 +36,13 @@ plist_ref = widget_group.new_reference('Info.plist')
 # 添加 LiveActivityModule 到主 App target
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
 
-# 创建 group（如果不存在）
-main_group = project.main_group
-lx_music_group = main_group.children.find { |g| g.is_a?(Xcodeproj::Project::Object::PBXGroup) && g.name == 'LxMusicMobile' }
-unless lx_music_group
-  lx_music_group = main_group.new_group('LxMusicMobile', 'LxMusicMobile')
-end
-
-# 添加 LiveActivityModule.swift
-swift_file_ref = lx_music_group.new_reference('LiveActivityModule.swift')
-main_target.source_build_phase.add_file_reference(swift_file_ref, true)
-
-# 添加 LiveActivityModule.m
-m_file_ref = lx_music_group.new_reference('LiveActivityModule.m')
-main_target.source_build_phase.add_file_reference(m_file_ref, true)
+# 直接使用相对于 ios/ 目录的完整路径
+swift_file_ref = main_target.source_build_phase.add_file_reference(
+  main_target.project.main_group.new_reference('LxMusicMobile/LiveActivityModule.swift')
+)
+m_file_ref = main_target.source_build_phase.add_file_reference(
+  main_target.project.main_group.new_reference('LxMusicMobile/LiveActivityModule.m')
+)
 
 # 嵌入主 App
 
