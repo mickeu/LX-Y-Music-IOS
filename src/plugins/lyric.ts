@@ -180,6 +180,20 @@ export const syncToTime = (time: number, isPlaying: boolean) => {
 export const addPlayHook = (hook: PlayHook) => lrcTools.addPlayHook(hook)
 export const removePlayHook = (hook: PlayHook) => lrcTools.removePlayHook(hook)
 
+/**
+ * 读取当前歌词行文本。
+ * setPlayTime 在歌词行未变化时会直接 return（去重），不会回调 playHooks，
+ * 因此灵动岛这类需要持续刷新的消费者必须能直接读取当前行，而不能只依赖 hook。
+ */
+export const getCurrentLyricText = () => lrcTools.currentLineData.text
+/** 读取下一行歌词文本（用于灵动岛预览下一句），无则返回空串。 */
+export const getNextLyricText = () => {
+  const lines = lrcTools.currentLines
+  const idx = lrcTools.currentLineData.line
+  if (idx < 0 || idx + 1 >= lines.length) return ''
+  return lines[idx + 1]?.text ?? ''
+}
+
 // on lyric play hook
 export const useLrcPlay = (autoUpdate = true) => {
   // 注意：初值必须是 currentLineData 的【副本】，绝不能直接引用这个可变对象。
