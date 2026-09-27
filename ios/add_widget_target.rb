@@ -16,6 +16,12 @@ widget_target.build_configurations.each do |config|
   config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
   config.build_settings['SKIP_INSTALL'] = 'NO'
   config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = 'YES'
+  # xcodeproj 的 :app_extension 模板不会设置 PRODUCT_NAME，必须显式指定。
+  # 否则 FULL_PRODUCT_NAME 解析为 ".appex"（空名），导致 bundle 目录创建命令
+  # 与链接命令输出到同一路径，报 "Multiple commands produce .../.appex"。
+  config.build_settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
+  # 为 appex 扩展显式指定包类型，确保 Info.plist 中 $(PRODUCT_BUNDLE_PACKAGE_TYPE) 正确解析。
+  config.build_settings['PRODUCT_BUNDLE_PACKAGE_TYPE'] = 'XPC!'
 end
 
 # 添加 Swift 源文件

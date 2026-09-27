@@ -47,7 +47,6 @@ struct LyricsLiveActivity: Widget {
             } minimal: {
                 Image(systemName: "music.note").font(.system(size: 14)).foregroundColor(.green)
             }
-            .keylineTint(.green)
         }
     }
 }
