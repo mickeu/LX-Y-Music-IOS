@@ -2,7 +2,7 @@ import ActivityKit
 import WidgetKit
 import SwiftUI
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 struct LyricsLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LyricsActivityAttributes.self) { context in

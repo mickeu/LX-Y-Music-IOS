@@ -2,7 +2,7 @@ import Foundation
 import ActivityKit
 import React
 
-@available(iOS 16.1, *)
+@available(iOS 16.2, *)
 @objc(LiveActivityModule)
 class LiveActivityModule: NSObject, RCTBridgeModule {
     static func moduleName() -> String { "LiveActivityModule" }

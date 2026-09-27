@@ -7,7 +7,7 @@ return if project.targets.any? { |t| t.name == 'WidgetExtension' }
 widget_group = project.main_group.new_group('WidgetExtension', 'WidgetExtension')
 
 # 创建 Widget Extension target
-widget_target = project.new_target(:app_extension, 'WidgetExtension', :ios, '16.1')
+widget_target = project.new_target(:app_extension, 'WidgetExtension', :ios, '16.2')
 widget_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.LX-YMusic.shuhao.WidgetExtension'
   config.build_settings['SWIFT_VERSION'] = '5.0'
