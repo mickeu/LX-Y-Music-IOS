@@ -12,6 +12,7 @@ import {
   isLiveActivityAvailable,
 } from '@/utils/nativeModules/liveActivity'
 import playerState from '@/store/player/state'
+import settingState from '@/store/setting/state'
 
 export default memo(() => {
   const t = useI18n()
@@ -23,7 +24,7 @@ export default memo(() => {
       const ok = await isLiveActivityAvailable()
       if (!ok) return
       const info = playerState.musicInfo
-      const fontSize = playerState.setting?.['player.dynamicIslandLyricFontSize'] ?? 15
+      const fontSize = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
       await startLyricsActivity(info.name || '', info.singer || '', fontSize)
     } else {
       await endLyricsActivity()
