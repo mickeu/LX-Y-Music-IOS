@@ -13,8 +13,8 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     private var artist = ""
     private var currentFontSize = 15
     private var pendingLyric = ""
+    private var currentScrollOffset: Double = 0
 
-    // 结束所有同类 Live Activity（确保锁屏只保留一个）
     private func endAllActivities() async {
         for activity in Activity<LyricsActivityAttributes>.activities {
             await activity.end(dismissalPolicy: .immediate)
@@ -22,7 +22,6 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         currentActivity = nil
     }
 
-    // 启动灵动岛歌词 Live Activity（Promise，确保创建完成后才 resolve）
     @objc(startLyricsActivity:artist:fontSize:resolve:reject:)
     func startLyricsActivity(songName: String, artist: String, fontSize: Int,
                              resolve: @escaping RCTPromiseResolveBlock,
@@ -30,27 +29,23 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         self.songName = songName
         self.artist = artist
         self.currentFontSize = fontSize
+        currentScrollOffset = 0
 
         Task {
-            // 结束所有同类 Activity（确保同时只有一个）
             await endAllActivities()
-
             let initLyric = pendingLyric.isEmpty ? songName : pendingLyric
             let attributes = LyricsActivityAttributes(id: UUID().uuidString)
             let state = LyricsActivityAttributes.ContentState(
-                songName: songName,
-                artist: artist,
-                currentLyric: initLyric,
-                nextLyric: "",
-                fontSize: fontSize,
-                isPlaying: true
+                songName: songName, artist: artist,
+                currentLyric: initLyric, nextLyric: "",
+                fontSize: fontSize, isPlaying: true,
+                scrollOffset: 0
             )
             do {
                 currentActivity = try Activity.request(
                     attributes: attributes,
                     content: .init(state: state, staleDate: nil)
                 )
-                NSLog("[LiveActivity] 启动成功: \(songName)")
                 resolve(true)
             } catch {
                 NSLog("[LiveActivity] 启动失败: \(error)")
@@ -59,47 +54,49 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 更新歌词
-    @objc(updateLyric:nextLyric:isPlaying:)
-    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
+    // 更新歌词 + 滚动偏移量
+    @objc(updateLyric:nextLyric:isPlaying:scrollOffset:)
+    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool, scrollOffset: Double) {
         let displayLyric = lyric.isEmpty ? songName : lyric
         guard let activity = currentActivity else {
             pendingLyric = displayLyric
+            currentScrollOffset = scrollOffset
             return
         }
         pendingLyric = ""
+        currentScrollOffset = scrollOffset
         let state = LyricsActivityAttributes.ContentState(
-            songName: songName,
-            artist: artist,
-            currentLyric: displayLyric,
-            nextLyric: nextLyric,
-            fontSize: currentFontSize,
-            isPlaying: isPlaying
+            songName: songName, artist: artist,
+            currentLyric: displayLyric, nextLyric: nextLyric,
+            fontSize: currentFontSize, isPlaying: isPlaying,
+            scrollOffset: scrollOffset
         )
         Task {
             await activity.update(.init(state: state, staleDate: nil))
         }
     }
 
-    // 更新字号（保留当前歌词）
+    // 兼容旧调用（无 scrollOffset）
+    @objc(updateLyric:nextLyric:isPlaying:)
+    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
+        updateLyric(lyric: lyric, nextLyric: nextLyric, isPlaying: isPlaying, scrollOffset: 0)
+    }
+
     @objc(updateFontSize:)
     func updateFontSize(fontSize: Int) {
         self.currentFontSize = fontSize
         guard let activity = currentActivity else { return }
         let state = LyricsActivityAttributes.ContentState(
-            songName: songName,
-            artist: artist,
+            songName: songName, artist: artist,
             currentLyric: pendingLyric.isEmpty ? songName : pendingLyric,
-            nextLyric: "",
-            fontSize: fontSize,
-            isPlaying: true
+            nextLyric: "", fontSize: fontSize, isPlaying: true,
+            scrollOffset: currentScrollOffset
         )
         Task {
             await activity.update(.init(state: state, staleDate: nil))
         }
     }
 
-    // 结束所有 Live Activity
     @objc(endLyricsActivity)
     func endLyricsActivity() {
         Task {
@@ -108,9 +105,8 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 检查灵动岛是否可用
     @objc(isAvailable:reject:)
-    func isAvailable(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func isAvailable(resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(ActivityAuthorizationInfo().areActivitiesEnabled)
     }
 }

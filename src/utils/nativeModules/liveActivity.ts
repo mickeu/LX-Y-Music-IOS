@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native'
 
 type LiveActivityModuleType = {
   startLyricsActivity?: (songName: string, artist: string, fontSize: number) => Promise<boolean>
-  updateLyric?: (lyric: string, nextLyric: string, isPlaying: boolean) => Promise<void>
+  updateLyric?: (lyric: string, nextLyric: string, isPlaying: boolean, scrollOffset: number) => Promise<void>
   updateFontSize?: (fontSize: number) => Promise<void>
   endLyricsActivity?: () => Promise<void>
   isAvailable?: () => Promise<boolean>
@@ -24,9 +24,9 @@ export const startLyricsActivity = async (songName: string, artist: string, font
   return LiveActivity!.startLyricsActivity!(songName, artist, fontSize)
 }
 
-export const updateLiveActivityLyric = async (lyric: string, nextLyric: string = '', isPlaying: boolean = true) => {
+export const updateLiveActivityLyric = async (lyric: string, nextLyric: string = '', isPlaying: boolean = true, scrollOffset: number = 0) => {
   if (!hasMethod('updateLyric')) return
-  return LiveActivity!.updateLyric!(lyric, nextLyric, isPlaying)
+  return LiveActivity!.updateLyric!(lyric, nextLyric, isPlaying, scrollOffset)
 }
 
 export const updateLiveActivityFontSize = async (fontSize: number) => {

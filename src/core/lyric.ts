@@ -49,23 +49,44 @@ const cleanLyricText = (text: string): string => {
 // 灵动岛歌词 hook 函数
 let dynamicIslandLyricHookActive = false
 let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
+// 滚动状态
+let scrollOffset = 0
+let currentLyricText = ''
+const SCROLL_SPEED = 15  // 每秒移动像素
+const INITIAL_OFFSET = 36 // 初始偏移量（从右边开始）
 
 const dynamicIslandLyricHook = (line: number, text: string) => {
   if (!settingState.setting['player.isDynamicIslandLyric']) return
   if (!dynamicIslandLyricHookActive) return
-  const lyricText = cleanLyricText(text) || playerState.musicInfo.name || ''
-  updateLiveActivityLyric(lyricText, '', playerState.isPlay).catch(() => {})
+  currentLyricText = cleanLyricText(text) || playerState.musicInfo.name || ''
+  // 歌词行变化时重置滚动偏移量（从右边开始）
+  scrollOffset = INITIAL_OFFSET
+  updateLiveActivityLyric(currentLyricText, '', playerState.isPlay, scrollOffset).catch(() => {})
 }
 
-// 定时同步歌词位置（每秒获取播放位置，同步到歌词插件，触发 addPlayHook）
+// 定时同步歌词位置 + 滚动更新
 const startLyricSyncTimer = () => {
   if (lyricSyncTimer) return
   lyricSyncTimer = setInterval(() => {
     if (!playerState.isPlay) return
     if (!dynamicIslandLyricHookActive) return
+    // 同步歌词位置（触发 addPlayHook）
     void getPosition().then((position) => {
       lrcSyncToTime(position * 1000, true)
     })
+    // 更新滚动偏移量（从右往左滚动）
+    if (currentLyricText) {
+      const textWidth = currentLyricText.length * 6 // 估算文字宽度
+      if (textWidth > INITIAL_OFFSET) {
+        scrollOffset -= SCROLL_SPEED
+        if (scrollOffset < -(textWidth + INITIAL_OFFSET)) {
+          scrollOffset = INITIAL_OFFSET // 循环
+        }
+      } else {
+        scrollOffset = 0 // 短文本不需要滚动
+      }
+      updateLiveActivityLyric(currentLyricText, '', playerState.isPlay, scrollOffset).catch(() => {})
+    }
   }, 1000)
 }
 
