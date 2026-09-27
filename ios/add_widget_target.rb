@@ -37,12 +37,21 @@ plist_ref = widget_group.new_reference('Info.plist')
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
 
 # 直接使用相对于 ios/ 目录的完整路径
+# LiveActivityModule.swift + .m（主 App 的 RN 原生模块桥接）
 swift_file_ref = main_target.source_build_phase.add_file_reference(
   main_target.project.main_group.new_reference('LxMusicMobile/LiveActivityModule.swift')
 )
 m_file_ref = main_target.source_build_phase.add_file_reference(
   main_target.project.main_group.new_reference('LxMusicMobile/LiveActivityModule.m')
 )
+
+# LyricsActivityAttributes.swift（WidgetExtension 目录，但主 App target 也需要编译，
+# 因为 LiveActivityModule.swift 引用了 LyricsActivityAttributes 类型）
+attrs_ref = widget_group.files.find { |f| f.path == 'LyricsActivityAttributes.swift' }
+unless attrs_ref
+  attrs_ref = widget_group.new_reference('LyricsActivityAttributes.swift')
+end
+main_target.source_build_phase.add_file_reference(attrs_ref, true)
 
 # 嵌入主 App
 
