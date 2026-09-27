@@ -66,22 +66,55 @@ struct LyricsLiveActivity: Widget {
                     .font(.system(size: 12))
                     .foregroundColor(.green)
             } compactTrailing: {
-                // 紧凑模式右侧：歌词（截断显示）
-                Text(context.state.currentLyric)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .frame(maxWidth: 120)
-                    .truncationMode(.tail)
+                // 紧凑模式右侧：歌词滚动
+                // 用 TimelineView 实现从右往左滚动
+                RollingText(text: context.state.currentLyric, fontSize: 11, maxWidth: 120)
             } minimal: {
-                // 最小模式：歌词（极小字体截断显示）
-                Text(context.state.currentLyric)
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .frame(maxWidth: 36)
-                    .truncationMode(.tail)
+                // 最小模式：只显示3个字，滚动
+                RollingText(text: context.state.currentLyric, fontSize: 9, maxWidth: 36, maxChars: 3)
             }
         }
+    }
+}
+
+// 滚动文本组件：从右往左滚动显示
+struct RollingText: View {
+    let text: String
+    let fontSize: CGFloat
+    let maxWidth: CGFloat
+    var maxChars: Int? = nil
+
+    var displayText: String {
+        if let maxChars = maxChars, text.count > maxChars {
+            return String(text.prefix(maxChars))
+        }
+        return text
+    }
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.3)) { timeline in
+            let offset = calculateOffset(date: timeline.date)
+            Text(displayText)
+                .font(.system(size: fontSize, weight: .medium))
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .frame(maxWidth: maxWidth)
+                .clipped()
+                .offset(x: offset)
+        }
+    }
+
+    // 计算滚动偏移量：从右往左循环
+    private func calculateOffset(date: Date) -> CGFloat {
+        let textWidth = estimateTextWidth()
+        if textWidth <= maxWidth { return 0 }
+        let cycle = textWidth + maxWidth
+        let elapsed = date.timeIntervalSinceReferenceDate
+        let progress = CGFloat(elapsed.truncatingRemainder(dividingBy: Double(cycle / 20))) / (cycle / 20)
+        return maxWidth - progress * cycle
+    }
+
+    private func estimateTextWidth() -> CGFloat {
+        return CGFloat(displayText.count) * fontSize * 0.6
     }
 }

@@ -48,11 +48,32 @@ const cleanLyricText = (text: string): string => {
 
 // 灵动岛歌词 hook 函数
 let dynamicIslandLyricHookActive = false
+let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
+
 const dynamicIslandLyricHook = (line: number, text: string) => {
   if (!settingState.setting['player.isDynamicIslandLyric']) return
   if (!dynamicIslandLyricHookActive) return
   const lyricText = cleanLyricText(text) || playerState.musicInfo.name || ''
   updateLiveActivityLyric(lyricText, '', playerState.isPlay).catch(() => {})
+}
+
+// 定时同步歌词位置（每秒获取播放位置，同步到歌词插件，触发 addPlayHook）
+const startLyricSyncTimer = () => {
+  if (lyricSyncTimer) return
+  lyricSyncTimer = setInterval(() => {
+    if (!playerState.isPlay) return
+    if (!dynamicIslandLyricHookActive) return
+    void getPosition().then((position) => {
+      lrcSyncToTime(position * 1000, true)
+    })
+  }, 1000)
+}
+
+const stopLyricSyncTimer = () => {
+  if (lyricSyncTimer) {
+    clearInterval(lyricSyncTimer)
+    lyricSyncTimer = null
+  }
 }
 
 // 启动/停止灵动岛 Live Activity
@@ -64,10 +85,13 @@ export const startDynamicIslandLyric = async () => {
   // 等待 Activity 创建完成再激活 hook（避免 currentActivity 为 nil 时更新丢失）
   await startLyricsActivity(info.name || '', info.singer || '', fontSize)
   dynamicIslandLyricHookActive = true
+  // 启动定时同步：每秒获取播放位置，同步歌词，触发 hook 更新灵动岛
+  startLyricSyncTimer()
 }
 
 export const stopDynamicIslandLyric = async () => {
   dynamicIslandLyricHookActive = false
+  stopLyricSyncTimer()
   await endLyricsActivity()
 }
 
