@@ -9,7 +9,7 @@ widget_group = project.main_group.new_group('WidgetExtension', 'WidgetExtension'
 # 创建 Widget Extension target
 widget_target = project.new_target(:app_extension, 'WidgetExtension', :ios, '16.1')
 widget_target.build_configurations.each do |config|
-  config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.lx.music.widget'
+  config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.LX-YMusic.shuhao.WidgetExtension'
   config.build_settings['SWIFT_VERSION'] = '5.0'
   config.build_settings['INFOPLIST_FILE'] = 'WidgetExtension/Info.plist'
   config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = '$(inherited) @executable_path/Frameworks'
