@@ -86,9 +86,13 @@ export default async (setting: LX.AppSetting) => {
   global.app_event.on('error', pause)
   global.app_event.on('musicToggled', () => {
     stop()
-    // 切歌时重启灵动岛 Live Activity
+    // 切歌时立即重启灵动岛 Live Activity
     if (settingState.setting['player.isDynamicIslandLyric']) {
-      void stopDynamicIslandLyric().then(() => startDynamicIslandLyric())
+      // 先停止（清除 hookActive），再启动新歌曲的 Activity
+      void stopDynamicIslandLyric().then(() => {
+        // musicToggled 时 playerState 已更新为新歌曲
+        return startDynamicIslandLyric()
+      })
     }
   })
   global.app_event.on('lyricUpdated', setLyric)
