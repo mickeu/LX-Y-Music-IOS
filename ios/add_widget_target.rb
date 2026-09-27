@@ -43,7 +43,7 @@ main_target.add_dependency(widget_target)
 embed_phase = main_target.copy_files_build_phases.find { |p| p.name == 'Embed App Extensions' }
 if embed_phase.nil?
   embed_phase = main_target.new_copy_files_build_phase('Embed App Extensions')
-  embed_phase.dst_subfolder_spec = '10'
+  embed_phase.dst_subfolder_spec = '13' # PlugIns 目录：app 扩展(.appex)必须嵌入 PlugIns 子目录，iOS 才能在运行时发现并加载。('10'=Frameworks 不适用于 app 扩展)
 end
 # 只添加一次
 unless embed_phase.files_references.any? { |f| f.path == widget_target.product_reference.path }
