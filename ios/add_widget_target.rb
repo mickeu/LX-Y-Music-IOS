@@ -22,9 +22,8 @@ end
   widget_target.source_build_phase.add_file_reference(ref, true)
 end
 
-# 添加 Info.plist
+# Info.plist 不需要加到 Resources phase（Xcode 会自动处理）
 plist_ref = widget_group.new_reference('Info.plist')
-widget_target.resources_build_phase.add_file_reference(plist_ref, true)
 
 # 嵌入主 App
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
