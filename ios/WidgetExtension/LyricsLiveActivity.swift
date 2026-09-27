@@ -39,11 +39,10 @@ struct LyricsLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     Text(context.state.currentLyric).font(.system(size: CGFloat(context.state.fontSize), weight: .medium)).foregroundColor(.white).multilineTextAlignment(.center).lineLimit(2)
                 }
-            } compact: {
-                HStack(spacing: 4) {
-                    Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill").font(.system(size: 12)).foregroundColor(.green)
-                    Text(context.state.currentLyric).font(.system(size: 11, weight: .medium)).foregroundColor(.white).lineLimit(1).frame(maxWidth: 100)
-                }
+            } compactLeading: {
+                Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill").font(.system(size: 12)).foregroundColor(.green)
+            } compactTrailing: {
+                Text(context.state.currentLyric).font(.system(size: 11, weight: .medium)).foregroundColor(.white).lineLimit(1).frame(maxWidth: 100)
             } minimal: {
                 Image(systemName: "music.note").font(.system(size: 14)).foregroundColor(.green)
             }
