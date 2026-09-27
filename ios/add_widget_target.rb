@@ -14,6 +14,8 @@ widget_target.build_configurations.each do |config|
   config.build_settings['INFOPLIST_FILE'] = 'WidgetExtension/Info.plist'
   config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = '$(inherited) @executable_path/Frameworks'
   config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
+  config.build_settings['SKIP_INSTALL'] = 'NO'
+  config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = 'YES'
 end
 
 # 添加 Swift 源文件
@@ -27,7 +29,21 @@ plist_ref = widget_group.new_reference('Info.plist')
 
 # 嵌入主 App
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
+
+# 添加 target dependency
 main_target.add_dependency(widget_target)
+
+# 添加 Embed App Extensions phase
+embed_phase = main_target.copy_files_build_phases.find { |p| p.name == 'Embed App Extensions' }
+if embed_phase.nil?
+  embed_phase = main_target.new_copy_files_build_phase('Embed App Extensions')
+  embed_phase.dst_subfolder_spec = '10'
+end
+# 只添加一次
+unless embed_phase.files_references.any? { |f| f.path == widget_target.product_reference.path }
+  copy_ref = embed_phase.add_file_reference(widget_target.product_reference, true)
+  copy_ref.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
+end
 
 project.save
 puts 'WidgetExtension target added successfully'
