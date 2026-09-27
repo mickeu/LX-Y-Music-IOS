@@ -33,8 +33,25 @@ end
 # Info.plist 不需要加到 Resources phase（Xcode 会自动处理）
 plist_ref = widget_group.new_reference('Info.plist')
 
-# 嵌入主 App
+# 添加 LiveActivityModule 到主 App target
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
+
+# 创建 group（如果不存在）
+main_group = project.main_group
+lx_music_group = main_group.children.find { |g| g.is_a?(Xcodeproj::Project::Object::PBXGroup) && g.name == 'LxMusicMobile' }
+unless lx_music_group
+  lx_music_group = main_group.new_group('LxMusicMobile', 'LxMusicMobile')
+end
+
+# 添加 LiveActivityModule.swift
+swift_file_ref = lx_music_group.new_reference('LiveActivityModule.swift')
+main_target.source_build_phase.add_file_reference(swift_file_ref, true)
+
+# 添加 LiveActivityModule.m
+m_file_ref = lx_music_group.new_reference('LiveActivityModule.m')
+main_target.source_build_phase.add_file_reference(m_file_ref, true)
+
+# 嵌入主 App
 
 # 添加 target dependency
 main_target.add_dependency(widget_target)
