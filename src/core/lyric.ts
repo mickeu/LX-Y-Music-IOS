@@ -6,6 +6,8 @@ import {
   toggleTranslation as lrcToggleTranslation,
   toggleRoma as lrcToggleRoma,
   init as lrcInit,
+  addPlayHook,
+  removePlayHook,
 } from '@/plugins/lyric'
 import {
   playDesktopLyric,
@@ -17,13 +19,43 @@ import {
 } from '@/core/desktopLyric'
 import { getPosition } from '@/plugins/player'
 import playerState from '@/store/player/state'
-// import settingState from '@/store/setting/state'
+import settingState from '@/store/setting/state'
+import {
+  startLyricsActivity,
+  updateLiveActivityLyric,
+  endLyricsActivity,
+} from '@/utils/nativeModules/liveActivity'
 
 /**
  * init lyric
  */
 export const init = async () => {
-  return lrcInit()
+  lrcInit()
+  // 灵动岛歌词 hook：歌词逐行播放时同步到灵动岛
+  addPlayHook(dynamicIslandLyricHook)
+}
+
+// 灵动岛歌词 hook 函数
+let dynamicIslandLyricHookActive = false
+const dynamicIslandLyricHook = (line: number, text: string) => {
+  if (!settingState.setting['player.isDynamicIslandLyric']) return
+  if (!dynamicIslandLyricHookActive) return
+  updateLiveActivityLyric(text, '', playerState.isPlay).catch(() => {})
+}
+
+// 启动/停止灵动岛 Live Activity
+export const startDynamicIslandLyric = async () => {
+  const enabled = settingState.setting['player.isDynamicIslandLyric']
+  if (!enabled) return
+  const info = playerState.musicInfo
+  const fontSize = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
+  await startLyricsActivity(info.name || '', info.singer || '', fontSize)
+  dynamicIslandLyricHookActive = true
+}
+
+export const stopDynamicIslandLyric = async () => {
+  dynamicIslandLyricHookActive = false
+  await endLyricsActivity()
 }
 
 /**

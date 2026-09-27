@@ -99,6 +99,8 @@ const defaultSetting: LX.AppSetting = {
   'player.isShowNotificationImage': true,
   'player.isS2t': true,
   'player.isShowBluetoothLyric': false,
+  'player.isDynamicIslandLyric': false,
+  'player.dynamicIslandLyricFontSize': 15,
   'player.autoPlayOnReturn': false,
   'player.enableAutoToggleSource': true,
   'player.toggleSourceMaxRetry': 5,

@@ -18,6 +18,8 @@ import ToggleSourceMaxRetry from './ToggleSourceMaxRetry'
 import IsEnableFailureStrategy from './IsEnableFailureStrategy'
 import FailureStrategy from './FailureStrategy'
 import IsAutoPlayOnReturn from './IsAutoPlayOnReturn'
+import IsDynamicIslandLyric from './IsDynamicIslandLyric'
+import DynamicIslandLyricFontSize from './DynamicIslandLyricFontSize'
 import { useI18n } from '@/lang'
 
 export default memo(() => {
@@ -35,6 +37,8 @@ export default memo(() => {
       <IsShowLyricTranslation />
       <IsShowLyricRoma />
       <IsS2T />
+      <IsDynamicIslandLyric />
+      <DynamicIslandLyricFontSize />
       <ClearCache />
       <IsEnableAutoToggleSource />
       <ToggleSourceMaxRetry />

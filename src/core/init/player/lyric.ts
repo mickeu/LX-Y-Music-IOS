@@ -7,6 +7,8 @@ import {
   stop,
   setLyric,
   setPlaybackRate,
+  startDynamicIslandLyric,
+  stopDynamicIslandLyric,
 } from '@/core/lyric'
 import { updateSetting } from '@/core/common'
 import settingState from '@/store/setting/state'
@@ -17,6 +19,7 @@ import {
 import playerState from '@/store/player/state'
 import { updateNowPlayingTitles } from '@/plugins/player/utils'
 import { updateNowPlayingInfo } from '@/utils/nativeModules/nowPlaying'
+import { updateLiveActivityLyric } from '@/utils/nativeModules/liveActivity'
 import { Platform } from 'react-native'
 import { setLastLyric } from '@/core/player/playInfo'
 import { state } from '@/plugins/player/playList'
@@ -68,12 +71,27 @@ export default async (setting: LX.AppSetting) => {
     } else {
       void updateRemoteLyric(text)
     }
+    // 灵动岛歌词：逐行同步到 Live Activity
+    if (settingState.setting['player.isDynamicIslandLyric']) {
+      void updateLiveActivityLyric(text, '', playerState.isPlay).catch(() => {})
+    }
   })
 
   global.app_event.on('play', play)
   global.app_event.on('pause', pause)
   global.app_event.on('stop', stop)
   global.app_event.on('error', pause)
-  global.app_event.on('musicToggled', stop)
+  global.app_event.on('musicToggled', () => {
+    stop()
+    // 切歌时重启灵动岛 Live Activity
+    if (settingState.setting['player.isDynamicIslandLyric']) {
+      void stopDynamicIslandLyric().then(() => startDynamicIslandLyric())
+    }
+  })
   global.app_event.on('lyricUpdated', setLyric)
+  global.app_event.on('lyricUpdated', () => {
+    if (settingState.setting['player.isDynamicIslandLyric']) {
+      void startDynamicIslandLyric()
+    }
+  })
 }
