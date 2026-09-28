@@ -4823,10 +4823,12 @@ RCT_REMAP_METHOD(sha1, sha1:(NSString *)input resolver:(RCTPromiseResolveBlock)r
   return nil;
 }
 
-// Spotify 授权回调处理：收到 spotify:// 跳转后，通过 redirect_uri 回回调假 access_token
+// Spotify 授权回调处理：收到 spotify:// 跳转后，通过 redirect_uri 回调假 access_token
+// OAuth 2.0 Implicit Grant (response_type=token) 要求 access_token 在 fragment(#) 中
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
   if ([url.scheme isEqualToString:@"spotify"] || [url.scheme isEqualToString:@"spotify-action"]) {
+    NSLog(@"[SpotifyAuth] Received URL: %@", url);
     NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
     NSString *redirectUri = nil;
     NSString *state = nil;
@@ -4841,12 +4843,16 @@ RCT_REMAP_METHOD(sha1, sha1:(NSString *)input resolver:(RCTPromiseResolveBlock)r
       }
     }
 
+    NSLog(@"[SpotifyAuth] redirect_uri: %@, state: %@", redirectUri, state);
+
     if (redirectUri) {
+      // OAuth 2.0 Implicit Grant: access_token 在 fragment(#) 中，不是 query string(?)
       NSString *fakeToken = @"fake_access_token_abc123";
-      NSMutableString *callback = [NSMutableString stringWithFormat:@"%@?access_token=%@&token_type=Bearer&expires_in=3600", redirectUri, fakeToken];
+      NSMutableString *callback = [NSMutableString stringWithFormat:@"%@#access_token=%@&token_type=Bearer&expires_in=3600", redirectUri, fakeToken];
       if (state) {
         [callback appendFormat:@"&state=%@", state];
       }
+      NSLog(@"[SpotifyAuth] Callback URL: %@", callback);
       dispatch_async(dispatch_get_main_queue(), ^{
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:callback]];
       });
