@@ -24,10 +24,31 @@ import {
   endLyricsActivity,
 } from '@/utils/nativeModules/liveActivity'
 
-// 灵动岛 Live Activity 是否已启动（换行推送由 player/lyric.ts 的 onLyricLinePlay 处理，
-// 这里只管 Activity 的创建/结束，不再做 scrollOffset 动画——滚动交给 Widget 内 TimelineView）
+// 灵动岛 Live Activity 是否已启动
 let dynamicIslandActive = false
 let fontSizeNow = 15
+// 定时同步播放进度到歌词引擎，驱动 addPlayHook 检测换行 → onLyricLinePlay
+// → updateLiveActivityLyric 推送新歌词。滚动动画由 Widget 内 TimelineView 自己做。
+let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
+
+const startLyricSyncTimer = () => {
+  if (lyricSyncTimer) return
+  lyricSyncTimer = setInterval(() => {
+    if (!dynamicIslandActive) return
+    void getPosition()
+      .then((position) => {
+        lrcSyncToTime(position * 1000, playerState.isPlay)
+      })
+      .catch(() => {})
+  }, 1000)
+}
+
+const stopLyricSyncTimer = () => {
+  if (lyricSyncTimer) {
+    clearInterval(lyricSyncTimer)
+    lyricSyncTimer = null
+  }
+}
 
 /**
  * init lyric
@@ -44,10 +65,12 @@ export const startDynamicIslandLyric = async () => {
   fontSizeNow = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
   await startLyricsActivity(info.name || '', info.singer || '', fontSizeNow)
   dynamicIslandActive = true
+  startLyricSyncTimer()
 }
 
 export const stopDynamicIslandLyric = async () => {
   dynamicIslandActive = false
+  stopLyricSyncTimer()
   await endLyricsActivity()
 }
 
