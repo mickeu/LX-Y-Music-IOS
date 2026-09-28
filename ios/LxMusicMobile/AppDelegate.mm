@@ -4823,4 +4823,39 @@ RCT_REMAP_METHOD(sha1, sha1:(NSString *)input resolver:(RCTPromiseResolveBlock)r
   return nil;
 }
 
+// Spotify 授权回调处理：收到 spotify:// 跳转后，通过 redirect_uri 回回调假 access_token
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  if ([url.scheme isEqualToString:@"spotify"] || [url.scheme isEqualToString:@"spotify-action"]) {
+    NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
+    NSString *redirectUri = nil;
+    NSString *state = nil;
+    if (components.queryItems) {
+      for (NSURLQueryItem *item in components.queryItems) {
+        if ([item.name isEqualToString:@"redirect_uri"]) {
+          redirectUri = [item.value stringByRemovingPercentEncoding];
+        }
+        if ([item.name isEqualToString:@"state"]) {
+          state = item.value;
+        }
+      }
+    }
+
+    if (redirectUri) {
+      NSString *fakeToken = @"fake_access_token_abc123";
+      NSMutableString *callback = [NSMutableString stringWithFormat:@"%@?access_token=%@&token_type=Bearer&expires_in=3600", redirectUri, fakeToken];
+      if (state) {
+        [callback appendFormat:@"&state=%@", state];
+      }
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:callback]];
+      });
+    }
+
+    return YES;
+  }
+
+  return NO;
+}
+
 @end
