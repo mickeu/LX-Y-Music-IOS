@@ -65,7 +65,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
             do {
                 let activity = try Activity.request(
                     attributes: attributes,
-                    content: .init(state: state, staleDate: nil)
+                    content: .init(state: state, staleDate: nil, relevanceScore: 1.0)
                 )
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 currentActivity = activity
@@ -94,7 +94,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
             isPlaying: isPlaying
         )
         Task {
-            await activity.update(.init(state: state, staleDate: nil))
+            await activity.update(.init(state: state, staleDate: nil, relevanceScore: 1.0))
         }
     }
 

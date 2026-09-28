@@ -29,6 +29,9 @@ import {
 let dynamicIslandActive = false
 let fontSizeNow = 15
 let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
+// 停止播放后自动隐藏延时（30 秒）
+const AUTO_HIDE_DELAY = 30_000
+let autoHideTimer: ReturnType<typeof setTimeout> | null = null
 
 // 定时写 AppGroup：Widget 自读数据算换行 + 做动画，不走 Activity.update 推送
 const startLyricSyncTimer = () => {
@@ -86,8 +89,26 @@ export const startDynamicIslandLyric = async () => {
 
 export const stopDynamicIslandLyric = async () => {
   dynamicIslandActive = false
+  clearAutoHideTimer()
   stopLyricSyncTimer()
   await endLyricsActivity()
+}
+
+// 停止播放后自动隐藏：启动延时计时器
+const startAutoHideTimer = () => {
+  clearAutoHideTimer()
+  autoHideTimer = setTimeout(async () => {
+    autoHideTimer = null
+    await stopDynamicIslandLyric()
+  }, AUTO_HIDE_DELAY)
+}
+
+// 恢复播放时取消自动隐藏
+const clearAutoHideTimer = () => {
+  if (autoHideTimer) {
+    clearTimeout(autoHideTimer)
+    autoHideTimer = null
+  }
 }
 
 export const setDynamicIslandFontSize = (size: number) => {
@@ -112,6 +133,8 @@ export const pause = () => {
     void getPosition().then((pos) => {
       updatePlaybackState(playerState.musicInfo.name || '', pos, false)
     })
+    // 暂停后 30 秒自动隐藏灵动岛
+    startAutoHideTimer()
   }
 }
 
@@ -148,9 +171,14 @@ export const play = () => {
     handlePlay(position * 1000)
   })
   if (dynamicIslandActive) {
+    // 恢复播放：取消自动隐藏
+    clearAutoHideTimer()
     void getPosition().then((pos) => {
       updatePlaybackState(playerState.musicInfo.name || '', pos, true)
     })
+  } else {
+    // 如果 Activity 已被自动隐藏，重新激活
+    void startDynamicIslandLyric()
   }
 }
 
