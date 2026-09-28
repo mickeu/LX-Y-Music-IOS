@@ -83,7 +83,7 @@ class SpotifyProxyServer {
                 "expires_in": 3600,
                 "scope": "user-read-playback-state user-read-currently-playing playlist-read-private"
             ]
-            return try? JSONSerialization.data(withJSONObject: json) ?? Data()
+            return (try? JSONSerialization.data(withJSONObject: json)) ?? Data()
         }
 
         // 3. GET /v1/me/player/currently-playing — 当前播放（必须在 /v1/me/player 之前）
@@ -99,24 +99,24 @@ class SpotifyProxyServer {
                     "album": ["id": "lx_album", "name": songName, "album_type": "album", "images": []]
                 ]
             ]
-            return try? JSONSerialization.data(withJSONObject: json) ?? Data()
+            return (try? JSONSerialization.data(withJSONObject: json)) ?? Data()
         }
 
         // 4. GET /v1/me/player — 播放器状态
         if path.contains("/v1/me/player") {
             let json: [String: Any] = ["device_id": "lx_device", "is_active": true, "is_private_session": false, "shuffle": false, "repeat_mode": "off"]
-            return try? JSONSerialization.data(withJSONObject: json) ?? Data()
+            return (try? JSONSerialization.data(withJSONObject: json)) ?? Data()
         }
 
         // 5. GET /v1/me — 用户信息
         if path.contains("/v1/me") {
             let json: [String: Any] = ["id": "lx_user", "display_name": "LX User", "type": "user", "uri": "spotify:user:lx_user", "product": "premium"]
-            return try? JSONSerialization.data(withJSONObject: json) ?? Data()
+            return (try? JSONSerialization.data(withJSONObject: json)) ?? Data()
         }
 
         // 6. 其他端点
         let empty: [String: Any] = ["count": 0, "items": [], "href": ""]
-        return try? JSONSerialization.data(withJSONObject: empty) ?? Data()
+        return (try? JSONSerialization.data(withJSONObject: empty)) ?? Data()
     }
 
     private func extractParam(_ key: String, from path: String) -> String? {
