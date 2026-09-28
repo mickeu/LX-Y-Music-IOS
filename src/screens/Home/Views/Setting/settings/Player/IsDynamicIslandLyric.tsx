@@ -5,12 +5,7 @@ import { useSettingValue } from '@/store/setting/hook'
 import { updateSetting } from '@/core/common'
 import { createStyle } from '@/utils/tools'
 import CheckBoxItem from '../../components/CheckBoxItem'
-import {
-  startLyricsActivity,
-  endLyricsActivity,
-} from '@/utils/nativeModules/liveActivity'
-import playerState from '@/store/player/state'
-import settingState from '@/store/setting/state'
+import { startDynamicIslandLyric, stopDynamicIslandLyric } from '@/core/lyric'
 
 export default memo(() => {
   const t = useI18n()
@@ -19,11 +14,9 @@ export default memo(() => {
   const onToggle = async (val: boolean) => {
     updateSetting({ 'player.isDynamicIslandLyric': val })
     if (val) {
-      const info = playerState.musicInfo
-      const fontSize = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
-      await startLyricsActivity(info.name || '', info.singer || '', fontSize)
+      await startDynamicIslandLyric()
     } else {
-      await endLyricsActivity()
+      await stopDynamicIslandLyric()
     }
   }
 
