@@ -9,6 +9,8 @@
 #import <AVFoundation/AVFoundation.h>
 #import <Accelerate/Accelerate.h>
 #import <MediaPlayer/MediaPlayer.h>
+#import <Intents/Intents.h>
+#import "PlayMediaIntentHandler.h"
 #import <JavaScriptCore/JavaScriptCore.h>
 #import <math.h>
 #include <alloca.h>
@@ -4810,6 +4812,15 @@ RCT_REMAP_METHOD(sha1, sha1:(NSString *)input resolver:(RCTPromiseResolveBlock)r
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
+}
+
+// 快捷指令 Intent 分发：系统通过此方法获取 Intent 处理器
+- (id)application:(UIApplication *)application handlerForIntent:(INIntent *)intent
+{
+  if ([intent isKindOfClass:[INPlayMediaIntent class]]) {
+    return [[PlayMediaIntentHandler alloc] init];
+  }
+  return nil;
 }
 
 @end
