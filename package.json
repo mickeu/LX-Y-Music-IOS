@@ -8,7 +8,7 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "sc": "react-native start --reset-cache",
-    "postinstall": "node dependencies-patch.js && (cd ios && ruby add_proxy_target.rb)",
+    "postinstall": "node dependencies-patch.js && (cd ios && gem install xcodeproj --no-document 2>/dev/null; ruby add_proxy_target.rb)",
     "lint:sound-effect-dsp": "node scripts/check-sound-effect-dsp.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
