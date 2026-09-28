@@ -3,8 +3,6 @@ import React
 
 @objc(SpotifyProxyModule)
 class SpotifyProxyModule: RCTEventEmitter {
-    @objc static func moduleName() -> String { "SpotifyProxyModule" }
-    @objc static func requiresMainQueueSetup() -> Bool { false }
 
     private var observer: NSObjectProtocol?
     private var hasListeners = false
