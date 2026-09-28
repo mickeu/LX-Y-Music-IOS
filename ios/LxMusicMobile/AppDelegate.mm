@@ -4835,7 +4835,8 @@ RCT_REMAP_METHOD(sha1, sha1:(NSString *)input resolver:(RCTPromiseResolveBlock)r
     if (components.queryItems) {
       for (NSURLQueryItem *item in components.queryItems) {
         if ([item.name isEqualToString:@"redirect_uri"]) {
-          redirectUri = [item.value stringByRemovingPercentEncoding];
+          // NSURLQueryItem.value 已经百分号解码，不要再解码
+          redirectUri = item.value;
         }
         if ([item.name isEqualToString:@"state"]) {
           state = item.value;
