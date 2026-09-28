@@ -10,8 +10,7 @@ RCT_EXTERN_METHOD(startLyricsActivity:(NSString *)songName
 
 RCT_EXTERN_METHOD(updateLyric:(NSString *)lyric
                   nextLyric:(NSString *)nextLyric
-                  isPlaying:(BOOL)isPlaying
-                  scrollOffset:(double)scrollOffset)
+                  isPlaying:(BOOL)isPlaying)
 
 RCT_EXTERN_METHOD(updateFontSize:(NSInteger)fontSize)
 

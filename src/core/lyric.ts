@@ -6,10 +6,6 @@ import {
   toggleTranslation as lrcToggleTranslation,
   toggleRoma as lrcToggleRoma,
   init as lrcInit,
-  addPlayHook,
-  removePlayHook,
-  getCurrentLyricText,
-  getNextLyricText,
 } from '@/plugins/lyric'
 import {
   playDesktopLyric,
@@ -24,140 +20,44 @@ import playerState from '@/store/player/state'
 import settingState from '@/store/setting/state'
 import {
   startLyricsActivity,
-  updateLiveActivityLyric,
+  updateLiveActivityFontSize,
   endLyricsActivity,
 } from '@/utils/nativeModules/liveActivity'
+
+// 灵动岛 Live Activity 是否已启动（换行推送由 player/lyric.ts 的 onLyricLinePlay 处理，
+// 这里只管 Activity 的创建/结束，不再做 scrollOffset 动画——滚动交给 Widget 内 TimelineView）
+let dynamicIslandActive = false
+let fontSizeNow = 15
 
 /**
  * init lyric
  */
 export const init = async () => {
   lrcInit()
-  // 灵动岛歌词 hook：歌词逐行播放时同步到灵动岛
-  addPlayHook(dynamicIslandLyricHook)
 }
 
-// 清理歌词文本：去除 LRC 时间标记、HTML 标签、多余空白
-const cleanLyricText = (text: string): string => {
-  if (!text) return ''
-  // 去除 LRC 时间标记 [mm:ss.xxx]
-  let cleaned = text.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '')
-  // 去除 HTML 标签
-  cleaned = cleaned.replace(/<[^>]+>/g, '')
-  // 去除首尾空白
-  return cleaned.trim()
-}
-
-// 灵动岛歌词状态
-let dynamicIslandLyricHookActive = false
-let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
-let scrollOffset = 0
-let lastPushedLyric = ''
-let lastPushAt = 0
-const SCROLL_SPEED = 25       // 每帧滚动像素（iOS 限流 1s/次，实际约 25px/s）
-const INITIAL_OFFSET = 60     // 起始偏移（文字从容器右侧进入，留余量）
-const PUSH_INTERVAL = 1000    // 推送间隔 ms（iOS Live Activity 限流约 1s/次，过快会被丢弃）
-
-// 当前字号。pushLyricNow 用它估算文字宽度，必须先声明。
-let fontSizeNow = 15
-
-// hook 在"切到新行"时被 setPlayTime 调用，立即推送到灵动岛
-const dynamicIslandLyricHook = (line: number, text: string) => {
-  if (!settingState.setting['player.isDynamicIslandLyric']) return
-  if (!dynamicIslandLyricHookActive) return
-  const lyric = cleanLyricText(text)
-  const next = cleanLyricText(getNextLyricText())
-  scrollOffset = INITIAL_OFFSET // 新的一句从右侧重新开始
-  // 立即推送，不等定时器
-  updateLiveActivityLyric(lyric, next, playerState.isPlay, scrollOffset).catch(() => {})
-  lastPushedLyric = lyric
-}
-
-// 把当前歌词 + 滚动偏移推送到实时活动
-const pushLyricNow = () => {
-  const raw = getCurrentLyricText()
-  const lyric = cleanLyricText(raw) || playerState.musicInfo.name || ''
-  const next = cleanLyricText(getNextLyricText())
-
-  // 估算文字宽度决定是否需要滚动；短文本居中不动
-  // 中文字符宽度约为字号的 1.0 倍，英文约为 0.5 倍
-  const isCJK = /[\u4e00-\u9fff\u3400-\u4dbf]/.test(lyric)
-  const charWidth = fontSizeNow * (isCJK ? 1.0 : 0.55)
-  const textWidth = lyric.length * charWidth
-  const needScroll = textWidth > 50 // 超过 50px 就滚动
-
-  if (needScroll) {
-    scrollOffset -= SCROLL_SPEED
-    // 滚动到左边超过文字宽度时重置到右边
-    if (scrollOffset < -(textWidth + 30)) {
-      scrollOffset = INITIAL_OFFSET
-    }
-  } else {
-    scrollOffset = 0
-  }
-
-  lastPushedLyric = lyric
-  lastPushAt = Date.now()
-  updateLiveActivityLyric(lyric, next, playerState.isPlay, scrollOffset).catch(() => {})
-}
-
-// 定时同步：主动读取播放进度 + 当前歌词行，驱动灵动岛持续刷新
-const startLyricSyncTimer = () => {
-  if (lyricSyncTimer) return
-  lyricSyncTimer = setInterval(() => {
-    if (!dynamicIslandLyricHookActive) return
-    // 歌词位置按音频真实进度重算（未换行时内部会去重，不会重复回调 hook）
-    void getPosition()
-      .then((position) => {
-        lrcSyncToTime(position * 1000, playerState.isPlay)
-      })
-      .catch(() => {})
-      .then(() => {
-        if (!playerState.isPlay) return
-        setTimeout(pushLyricNow, 60) // 等 syncToTime 更新 currentLineData 后再读取
-      })
-  }, PUSH_INTERVAL)
-}
-
-const stopLyricSyncTimer = () => {
-  if (lyricSyncTimer) {
-    clearInterval(lyricSyncTimer)
-    lyricSyncTimer = null
-  }
-}
-
-// 启动/停止灵动岛 Live Activity
+// 启动灵动岛 Live Activity
 export const startDynamicIslandLyric = async () => {
   const enabled = settingState.setting['player.isDynamicIslandLyric']
   if (!enabled) return
   const info = playerState.musicInfo
   fontSizeNow = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
-  scrollOffset = INITIAL_OFFSET
-  lastPushedLyric = ''
-  // 等待 Activity 创建完成再激活（避免 currentActivity 为 nil 时更新丢失）
   await startLyricsActivity(info.name || '', info.singer || '', fontSizeNow)
-  dynamicIslandLyricHookActive = true
-  startLyricSyncTimer()
-  // Activity 创建后立即推一次，不等 1s 定时器
-  setTimeout(pushLyricNow, 500)
+  dynamicIslandActive = true
 }
 
 export const stopDynamicIslandLyric = async () => {
-  dynamicIslandLyricHookActive = false
-  stopLyricSyncTimer()
+  dynamicIslandActive = false
   await endLyricsActivity()
 }
 
 /**
  * 更新灵动岛歌词字号。设置页调滑块时调用。
- * 必须同时更新模块级 fontSizeNow，否则滚动宽度估算与后续 push 仍用旧字号。
- * 同时立即推送一次更新到 Activity，否则字号变化不会立即生效。
  */
 export const setDynamicIslandFontSize = (size: number) => {
   fontSizeNow = size
-  // 立即推送字号更新到 Activity
-  if (dynamicIslandLyricHookActive) {
-    pushLyricNow()
+  if (dynamicIslandActive) {
+    void updateLiveActivityFontSize(size)
   }
 }
 

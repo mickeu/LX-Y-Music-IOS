@@ -2,11 +2,59 @@ import ActivityKit
 import WidgetKit
 import SwiftUI
 
+/// 滚动歌词文本：用 TimelineView 按帧重绘，从右往左循环滚动（marquee）。
+/// 文字短于容器时居中不动，长于容器时滚动。无需外部推送 scrollOffset。
+struct ScrollingLyricText: View {
+    let text: String
+    let fontSize: CGFloat
+    let maxWidth: CGFloat
+    let color: Color
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.05)) { context in
+            body(date: context.date)
+        }
+    }
+
+    @ViewBuilder
+    private func body(date: Date) -> some View {
+        if text.isEmpty {
+            Color.clear.frame(width: maxWidth, height: fontSize + 2)
+        } else {
+            let isCJK = text.unicodeScalars.contains { $0.value >= 0x4E00 && $0.value <= 0x9FFF }
+            let charWidth = fontSize * (isCJK ? 1.0 : 0.55)
+            let textWidth = CGFloat(text.count) * charWidth
+            if textWidth <= maxWidth {
+                Text(text)
+                    .font(.system(size: fontSize, weight: .medium))
+                    .foregroundColor(color)
+                    .lineLimit(1)
+                    .frame(maxWidth: maxWidth)
+            } else {
+                let scrollDistance = textWidth + maxWidth
+                let speed: CGFloat = 30
+                let period = Double(scrollDistance / speed)
+                let t = date.timeIntervalSinceReferenceDate
+                let phase = t.truncatingRemainder(dividingBy: period) / period
+                let offset = maxWidth - CGFloat(phase) * scrollDistance
+                Text(text)
+                    .font(.system(size: fontSize, weight: .medium))
+                    .foregroundColor(color)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .offset(x: offset)
+                    .frame(maxWidth: maxWidth, alignment: .leading)
+                    .clipped()
+            }
+        }
+    }
+}
+
 @available(iOS 16.2, *)
 struct LyricsLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: LyricsActivityAttributes.self) { context in
-            // 锁屏/桌面 Live Activity 视图（不用滚动，空间足够）
+            // 锁屏 / 桌面 Live Activity（与灵动岛共用同一 ContentState，换行即刷新）
             ZStack {
                 LinearGradient(colors: [.black.opacity(0.95), .black], startPoint: .leading, endPoint: .trailing)
                 VStack(alignment: .center, spacing: 6) {
@@ -19,11 +67,12 @@ struct LyricsLiveActivity: Widget {
                         Image(systemName: context.state.isPlaying ? "music.note" : "pause.circle.fill")
                             .foregroundColor(.green)
                     }
-                    Text(context.state.currentLyric)
-                        .font(.system(size: CGFloat(context.state.fontSize), weight: .medium))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
+                    ScrollingLyricText(
+                        text: context.state.currentLyric,
+                        fontSize: CGFloat(context.state.fontSize),
+                        maxWidth: 280,
+                        color: .white
+                    )
                     if !context.state.nextLyric.isEmpty {
                         Text(context.state.nextLyric)
                             .font(.system(size: 13))
@@ -35,7 +84,6 @@ struct LyricsLiveActivity: Widget {
             }
         } dynamicIsland: { context in
             DynamicIsland {
-                // 展开模式（大窗口）
                 DynamicIslandExpandedRegion(.leading) {
                     Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
                         .font(.system(size: 28))
@@ -54,36 +102,31 @@ struct LyricsLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.currentLyric)
-                        .font(.system(size: CGFloat(context.state.fontSize), weight: .medium))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
+                    ScrollingLyricText(
+                        text: context.state.currentLyric,
+                        fontSize: CGFloat(context.state.fontSize),
+                        maxWidth: 260,
+                        color: .white
+                    )
                 }
             } compactLeading: {
                 Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
                     .font(.system(size: 12))
                     .foregroundColor(.green)
             } compactTrailing: {
-                // 紧凑模式：歌词从右往左滚动（scrollOffset 控制偏移）
-                Text(context.state.currentLyric)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .offset(x: CGFloat(context.state.scrollOffset))
-                    .frame(maxWidth: 120, alignment: .leading)
-                    .clipped()
+                ScrollingLyricText(
+                    text: context.state.currentLyric,
+                    fontSize: 11,
+                    maxWidth: 120,
+                    color: .white
+                )
             } minimal: {
-                // 最小模式：歌词从右往左滚动
-                Text(context.state.currentLyric)
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .offset(x: CGFloat(context.state.scrollOffset))
-                    .frame(maxWidth: 36, alignment: .leading)
-                    .clipped()
+                ScrollingLyricText(
+                    text: context.state.currentLyric,
+                    fontSize: 9,
+                    maxWidth: 40,
+                    color: .white
+                )
             }
         }
     }

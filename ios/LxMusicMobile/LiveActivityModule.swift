@@ -13,10 +13,6 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     private var artist = ""
     private var currentFontSize = 15
     private var pendingLyric = ""
-    private var currentScrollOffset: Double = 0
-    private var currentLyricText = ""
-    private var currentNextLyric = ""
-    private var currentIsPlaying = true
 
     private func endAllActivities() async {
         for activity in Activity<LyricsActivityAttributes>.activities {
@@ -32,7 +28,6 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         self.songName = songName
         self.artist = artist
         self.currentFontSize = fontSize
-        currentScrollOffset = 0
 
         Task {
             await endAllActivities()
@@ -41,16 +36,14 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
             let state = LyricsActivityAttributes.ContentState(
                 songName: songName, artist: artist,
                 currentLyric: initLyric, nextLyric: "",
-                fontSize: fontSize, isPlaying: true,
-                scrollOffset: 0
+                fontSize: fontSize, isPlaying: true
             )
             do {
                 let activity = try Activity.request(
                     attributes: attributes,
                     content: .init(state: state, staleDate: nil)
                 )
-                // 等待一小段时间确保 Activity 完全就绪
-                try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+                try? await Task.sleep(nanoseconds: 500_000_000)
                 currentActivity = activity
                 resolve(true)
             } catch {
@@ -60,52 +53,35 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 更新歌词 + 滚动偏移量
-    @objc(updateLyric:nextLyric:isPlaying:scrollOffset:)
-    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool, scrollOffset: Double) {
+    // 换行时调用：只推当前歌词文本，滚动动画由 Widget 内 TimelineView 自己做
+    @objc(updateLyric:nextLyric:isPlaying:)
+    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
         let displayLyric = lyric.isEmpty ? songName : lyric
         guard let activity = currentActivity else {
             pendingLyric = displayLyric
-            currentScrollOffset = scrollOffset
             return
         }
         pendingLyric = ""
-        currentScrollOffset = scrollOffset
-        currentLyricText = displayLyric
-        currentNextLyric = nextLyric
-        currentIsPlaying = isPlaying
         let state = LyricsActivityAttributes.ContentState(
             songName: songName, artist: artist,
             currentLyric: displayLyric, nextLyric: nextLyric,
-            fontSize: currentFontSize, isPlaying: isPlaying,
-            scrollOffset: scrollOffset
+            fontSize: currentFontSize, isPlaying: isPlaying
         )
         Task {
             await activity.update(.init(state: state, staleDate: nil))
         }
     }
 
-    // 兼容旧调用（无 scrollOffset）
-    @objc(updateLyric:nextLyric:isPlaying:)
-    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
-        updateLyric(lyric: lyric, nextLyric: nextLyric, isPlaying: isPlaying, scrollOffset: 0)
-    }
-
     @objc(updateFontSize:)
     func updateFontSize(fontSize: Int) {
         self.currentFontSize = fontSize
-        guard let activity = currentActivity else {
-            NSLog("[LiveActivity] updateFontSize: no active activity")
-            return
-        }
+        guard let activity = currentActivity else { return }
         let displayLyric = pendingLyric.isEmpty ? songName : pendingLyric
         let state = LyricsActivityAttributes.ContentState(
             songName: songName, artist: artist,
             currentLyric: displayLyric, nextLyric: "",
-            fontSize: fontSize, isPlaying: true,
-            scrollOffset: currentScrollOffset
+            fontSize: fontSize, isPlaying: true
         )
-        NSLog("[LiveActivity] updateFontSize: \(fontSize)")
         Task {
             await activity.update(.init(state: state, staleDate: nil))
         }
