@@ -13,6 +13,10 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     private var artist = ""
     private var currentFontSize = 15
     private var pendingLyric = ""
+    // 保存当前歌词状态，updateFontSize 时复用（避免覆盖当前播放的歌词/播放状态）
+    private var currentLyricText = ""
+    private var currentNextLyric = ""
+    private var currentIsPlaying = true
 
     private func endAllActivities() async {
         for activity in Activity<LyricsActivityAttributes>.activities {
@@ -59,9 +63,15 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         let displayLyric = lyric.isEmpty ? songName : lyric
         guard let activity = currentActivity else {
             pendingLyric = displayLyric
+            currentLyricText = displayLyric
+            currentNextLyric = nextLyric
+            currentIsPlaying = isPlaying
             return
         }
         pendingLyric = ""
+        currentLyricText = displayLyric
+        currentNextLyric = nextLyric
+        currentIsPlaying = isPlaying
         let state = LyricsActivityAttributes.ContentState(
             songName: songName, artist: artist,
             currentLyric: displayLyric, nextLyric: nextLyric,
@@ -76,11 +86,12 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     func updateFontSize(fontSize: Int) {
         self.currentFontSize = fontSize
         guard let activity = currentActivity else { return }
-        let displayLyric = pendingLyric.isEmpty ? songName : pendingLyric
+        // 复用当前歌词/播放状态，只改字号（避免调字号时把歌词覆盖成歌名）
         let state = LyricsActivityAttributes.ContentState(
             songName: songName, artist: artist,
-            currentLyric: displayLyric, nextLyric: "",
-            fontSize: fontSize, isPlaying: true
+            currentLyric: currentLyricText.isEmpty ? songName : currentLyricText,
+            nextLyric: currentNextLyric,
+            fontSize: fontSize, isPlaying: currentIsPlaying
         )
         Task {
             await activity.update(.init(state: state, staleDate: nil))

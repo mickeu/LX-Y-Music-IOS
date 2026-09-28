@@ -116,14 +116,14 @@ struct LyricsLiveActivity: Widget {
             } compactTrailing: {
                 ScrollingLyricText(
                     text: context.state.currentLyric,
-                    fontSize: 11,
+                    fontSize: CGFloat(context.state.fontSize),
                     maxWidth: 120,
                     color: .white
                 )
             } minimal: {
                 ScrollingLyricText(
                     text: context.state.currentLyric,
-                    fontSize: 9,
+                    fontSize: CGFloat(context.state.fontSize),
                     maxWidth: 40,
                     color: .white
                 )
