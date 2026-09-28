@@ -35,10 +35,11 @@ end
 # Info.plist 不需要加到 Resources phase（Xcode 会自动处理）
 plist_ref = widget_group.new_reference('Info.plist')
 ent_ref = widget_group.new_reference('WidgetExtension.entitlements')
-main_ent_ref = main_target.project.main_group.new_reference('LxMusicMobile/LxMusicMobile.entitlements')
 
 # 添加 LiveActivityModule 到主 App target
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
+
+main_ent_ref = main_target.project.main_group.new_reference('LxMusicMobile/LxMusicMobile.entitlements')
 
 # 直接使用相对于 ios/ 目录的完整路径
 # LiveActivityModule.swift + .m（主 App 的 RN 原生模块桥接）
