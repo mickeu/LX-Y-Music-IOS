@@ -17,22 +17,6 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     private var currentLyricText = ""
     private var currentNextLyric = ""
     private var currentIsPlaying = true
-    private var lyricTimer: Timer?
-    private var lyricCallback: (() -> (String, String, Bool, Double))?
-    private var lyricTimer: Timer?
-    private var lyricCallback: (() -> (String, String, Bool, Double))?
-    private var currentLyricText = ""
-    private var currentNextLyric = ""
-    private var currentIsPlaying = true
-    private var currentLyricText = ""
-    private var currentNextLyric = ""
-    private var currentIsPlaying = true
-    private var currentLyricText = ""
-    private var currentNextLyric = ""
-    private var currentIsPlaying = true
-    private var currentLyricText = ""
-    private var currentNextLyric = ""
-    private var currentIsPlaying = true
 
     private func endAllActivities() async {
         for activity in Activity<LyricsActivityAttributes>.activities {
