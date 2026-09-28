@@ -22,6 +22,11 @@ class SpotifyProxyModule: RCTEventEmitter {
     @objc(start)
     func start() {
         SpotifyProxyServer.shared.start()
+        // 先移除旧 observer，防止重复注册
+        if let o = observer {
+            NotificationCenter.default.removeObserver(o)
+            observer = nil
+        }
         // 监听快捷指令事件
         observer = NotificationCenter.default.addObserver(
             forName: NSNotification.Name("LXSpotifyPlayMedia"),

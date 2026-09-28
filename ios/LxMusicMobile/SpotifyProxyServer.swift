@@ -66,7 +66,8 @@ class SpotifyProxyServer {
         // 1. OAuth /authorize — 跳过登录，直接 302 到 redirect_uri 带 fake code
         if path.contains("/authorize") {
             if let uri = extractParam("redirect_uri", from: path) {
-                storedRedirectUri = uri
+                // HTTP 请求中的 URL 参数是百分号编码的，需要解码
+                storedRedirectUri = uri.removingPercentEncoding ?? uri
             }
             let fakeCode = "fake_code_\(Int(Date().timeIntervalSince1970 * 1000))"
             let redirect = "\(storedRedirectUri)?code=\(fakeCode)"
