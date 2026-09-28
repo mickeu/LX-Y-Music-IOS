@@ -8,6 +8,7 @@ import initPlayHistory from './playHistory'
 import initPreloadNextMusic from './preloadNextMusic'
 import initLyric from './lyric'
 import initRemoteCommand from './remoteCommand'
+import initSpotifyProxy from './spotifyProxy'
 
 export default async (setting: LX.AppSetting) => {
   await initPlayer(setting)
@@ -20,4 +21,5 @@ export default async (setting: LX.AppSetting) => {
   initPlayHistory()
   initPreloadNextMusic()
   initRemoteCommand()
+  initSpotifyProxy()
 }
