@@ -54,9 +54,9 @@ let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
 let scrollOffset = 0
 let lastPushedLyric = ''
 let lastPushAt = 0
-const SCROLL_SPEED = 12       // 每秒滚动像素
-const INITIAL_OFFSET = 40     // 起始偏移（文字从容器右侧进入）
-const PUSH_INTERVAL = 300     // 推送间隔 ms（Live Activity 更新频率上限约 1s 内多次会被系统限流）
+const SCROLL_SPEED = 25       // 每帧滚动像素（iOS 限流 1s/次，实际约 25px/s）
+const INITIAL_OFFSET = 60     // 起始偏移（文字从容器右侧进入，留余量）
+const PUSH_INTERVAL = 1000    // 推送间隔 ms（iOS Live Activity 限流约 1s/次，过快会被丢弃）
 
 // 当前字号。pushLyricNow 用它估算文字宽度，必须先声明。
 let fontSizeNow = 15
@@ -81,11 +81,18 @@ const pushLyricNow = () => {
   const next = cleanLyricText(getNextLyricText())
 
   // 估算文字宽度决定是否需要滚动；短文本居中不动
-  const textWidth = lyric.length * (fontSizeNow * 0.58)
-  const needScroll = textWidth > INITIAL_OFFSET + 8
+  // 中文字符宽度约为字号的 1.0 倍，英文约为 0.5 倍
+  const isCJK = /[\u4e00-\u9fff\u3400-\u4dbf]/.test(lyric)
+  const charWidth = fontSizeNow * (isCJK ? 1.0 : 0.55)
+  const textWidth = lyric.length * charWidth
+  const needScroll = textWidth > 50 // 超过 50px 就滚动
+
   if (needScroll) {
     scrollOffset -= SCROLL_SPEED
-    if (scrollOffset < -(textWidth + 20)) scrollOffset = INITIAL_OFFSET
+    // 滚动到左边超过文字宽度时重置到右边
+    if (scrollOffset < -(textWidth + 30)) {
+      scrollOffset = INITIAL_OFFSET
+    }
   } else {
     scrollOffset = 0
   }
@@ -132,7 +139,8 @@ export const startDynamicIslandLyric = async () => {
   await startLyricsActivity(info.name || '', info.singer || '', fontSizeNow)
   dynamicIslandLyricHookActive = true
   startLyricSyncTimer()
-  setTimeout(pushLyricNow, 200)
+  // Activity 创建后立即推一次，不等 1s 定时器
+  setTimeout(pushLyricNow, 500)
 }
 
 export const stopDynamicIslandLyric = async () => {
@@ -144,9 +152,14 @@ export const stopDynamicIslandLyric = async () => {
 /**
  * 更新灵动岛歌词字号。设置页调滑块时调用。
  * 必须同时更新模块级 fontSizeNow，否则滚动宽度估算与后续 push 仍用旧字号。
+ * 同时立即推送一次更新到 Activity，否则字号变化不会立即生效。
  */
 export const setDynamicIslandFontSize = (size: number) => {
   fontSizeNow = size
+  // 立即推送字号更新到 Activity
+  if (dynamicIslandLyricHookActive) {
+    pushLyricNow()
+  }
 }
 
 /**

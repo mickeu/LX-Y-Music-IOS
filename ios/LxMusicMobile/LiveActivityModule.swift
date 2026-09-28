@@ -42,10 +42,13 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
                 scrollOffset: 0
             )
             do {
-                currentActivity = try Activity.request(
+                let activity = try Activity.request(
                     attributes: attributes,
                     content: .init(state: state, staleDate: nil)
                 )
+                // 等待一小段时间确保 Activity 完全就绪
+                try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+                currentActivity = activity
                 resolve(true)
             } catch {
                 NSLog("[LiveActivity] 启动失败: \(error)")
