@@ -46,12 +46,15 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     func startLyricsActivity(lrc: String, songName: String, artist: String, fontSize: Int,
                              resolve: @escaping RCTPromiseResolveBlock,
                              reject: @escaping RCTPromiseRejectBlock) {
-        // 先把歌词数据写入 AppGroup
+        // 先把歌词数据写入 AppGroup（含 currentTime/duration/isPlaying，避免 1 秒空窗）
         if let defaults = UserDefaults(suiteName: suiteName) {
             defaults.set(lrc, forKey: "lyric")
             defaults.set(songName, forKey: "songName")
             defaults.set(artist, forKey: "artist")
             defaults.set(fontSize, forKey: "fontSize")
+            defaults.set(0.0, forKey: "currentTime")
+            defaults.set(0.0, forKey: "duration")
+            defaults.set(true, forKey: "isPlaying")
             defaults.set(Date(), forKey: "lastUpdate")
         }
 

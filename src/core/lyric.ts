@@ -121,6 +121,28 @@ export const setDynamicIslandFontSize = (size: number) => {
   writeFontSize(size)
 }
 
+/// 切歌/歌词更新时调用：只写新歌词到 AppGroup，不重建 Activity（避免 iOS 限流）
+export const refreshDynamicIslandData = async () => {
+  if (!dynamicIslandActive) {
+    // Activity 不在运行，需要创建
+    await startDynamicIslandLyric()
+    return
+  }
+  const info = playerState.musicInfo
+  void getPosition().then((position) => {
+    writeLyricData(
+      info.lrc || '',
+      info.name || '',
+      info.singer || '',
+      position,
+      info.interval || 0,
+      playerState.isPlay
+    )
+    // 更新 ContentState 的 songName/artist（切歌后歌名变了）
+    updatePlaybackState(info.name || '', position, playerState.isPlay)
+  })
+}
+
 const handleSetLyric = async (lyric: string, translation = '', romalrc = '') => {
   lrcSetLyric(lyric, translation, romalrc)
   await setDesktopLyric(lyric, translation, romalrc)

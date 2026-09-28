@@ -4,7 +4,6 @@ import { useI18n } from '@/lang'
 import { useSettingValue } from '@/store/setting/hook'
 import { updateSetting } from '@/core/common'
 import { createStyle } from '@/utils/tools'
-import { writeFontSize } from '@/utils/nativeModules/liveActivity'
 import { setDynamicIslandFontSize } from '@/core/lyric'
 import Slider from '../../components/Slider'
 
@@ -16,7 +15,6 @@ export default memo(() => {
     const rounded = Math.round(val)
     updateSetting({ 'player.dynamicIslandLyricFontSize': rounded })
     setDynamicIslandFontSize(rounded)
-    void writeFontSize(rounded)
   }
 
   return (

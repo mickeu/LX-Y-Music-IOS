@@ -9,6 +9,7 @@ import {
   setPlaybackRate,
   startDynamicIslandLyric,
   stopDynamicIslandLyric,
+  refreshDynamicIslandData,
 } from '@/core/lyric'
 import { updateSetting } from '@/core/common'
 import settingState from '@/store/setting/state'
@@ -83,17 +84,16 @@ export default async (setting: LX.AppSetting) => {
     stop()
     // 切歌时立即重启灵动岛 Live Activity
     if (settingState.setting['player.isDynamicIslandLyric']) {
-      // 先停止（清除 hookActive），再启动新歌曲的 Activity
-      void stopDynamicIslandLyric().then(() => {
-        // musicToggled 时 playerState 已更新为新歌曲
-        return startDynamicIslandLyric()
-      })
+      // 切歌时不重建 Activity（避免 iOS ActivityKit 限流），只写新歌词到 AppGroup
+      // Widget 的 TimelineView 会自动读到新 LRC 数据
+      void refreshDynamicIslandData()
     }
   })
   global.app_event.on('lyricUpdated', setLyric)
   global.app_event.on('lyricUpdated', () => {
     if (settingState.setting['player.isDynamicIslandLyric']) {
-      void startDynamicIslandLyric()
+      // 同上：只刷新 AppGroup，不重建 Activity
+      void refreshDynamicIslandData()
     }
   })
 }
