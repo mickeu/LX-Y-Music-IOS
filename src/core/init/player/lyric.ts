@@ -19,7 +19,6 @@ import {
 import playerState from '@/store/player/state'
 import { updateNowPlayingTitles } from '@/plugins/player/utils'
 import { updateNowPlayingInfo } from '@/utils/nativeModules/nowPlaying'
-import { updateLiveActivityLyric } from '@/utils/nativeModules/liveActivity'
 import { Platform } from 'react-native'
 import { setLastLyric } from '@/core/player/playInfo'
 import { state } from '@/plugins/player/playList'
@@ -73,11 +72,7 @@ export default async (setting: LX.AppSetting) => {
         void updateRemoteLyric(text)
       }
     }
-    // 灵动岛歌词（独立逻辑，不依赖蓝牙歌词开关）
-    if (settingState.setting['player.isDynamicIslandLyric']) {
-      const lyricText = text || playerState.musicInfo.name || ''
-      void updateLiveActivityLyric(lyricText, '', playerState.isPlay).catch(() => {})
-    }
+    // 灵动岛歌词已改为 Widget 自读 AppGroup（core/lyric.ts 定时写入），这里不再推送
   })
 
   global.app_event.on('play', play)

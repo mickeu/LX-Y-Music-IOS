@@ -20,27 +20,41 @@ import playerState from '@/store/player/state'
 import settingState from '@/store/setting/state'
 import {
   startLyricsActivity,
-  updateLiveActivityFontSize,
+  writeLyricData,
+  writeFontSize,
+  updatePlaybackState,
   endLyricsActivity,
 } from '@/utils/nativeModules/liveActivity'
 
-// 灵动岛 Live Activity 是否已启动
 let dynamicIslandActive = false
 let fontSizeNow = 15
-// 定时同步播放进度到歌词引擎，驱动 addPlayHook 检测换行 → onLyricLinePlay
-// → updateLiveActivityLyric 推送新歌词。滚动动画由 Widget 内 TimelineView 自己做。
 let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
 
+// 定时写 AppGroup：Widget 自读数据算换行 + 做动画，不走 Activity.update 推送
 const startLyricSyncTimer = () => {
   if (lyricSyncTimer) return
+  // 首次立即写入
+  writeCurrentData()
   lyricSyncTimer = setInterval(() => {
     if (!dynamicIslandActive) return
-    void getPosition()
-      .then((position) => {
-        lrcSyncToTime(position * 1000, playerState.isPlay)
-      })
-      .catch(() => {})
+    writeCurrentData()
   }, 1000)
+}
+
+const writeCurrentData = () => {
+  const info = playerState.musicInfo
+  void getPosition()
+    .then((position) => {
+      writeLyricData(
+        info.lrc || '',
+        info.name || '',
+        info.singer || '',
+        position,
+        info.interval || 0,
+        playerState.isPlay
+      )
+    })
+    .catch(() => {})
 }
 
 const stopLyricSyncTimer = () => {
@@ -50,20 +64,22 @@ const stopLyricSyncTimer = () => {
   }
 }
 
-/**
- * init lyric
- */
 export const init = async () => {
   lrcInit()
 }
 
-// 启动灵动岛 Live Activity
 export const startDynamicIslandLyric = async () => {
   const enabled = settingState.setting['player.isDynamicIslandLyric']
   if (!enabled) return
   const info = playerState.musicInfo
   fontSizeNow = settingState.setting['player.dynamicIslandLyricFontSize'] ?? 15
-  await startLyricsActivity(info.name || '', info.singer || '', fontSizeNow)
+  // 创建 Activity + 写 LRC 到 AppGroup
+  await startLyricsActivity(
+    info.lrc || '',
+    info.name || '',
+    info.singer || '',
+    fontSizeNow
+  )
   dynamicIslandActive = true
   startLyricSyncTimer()
 }
@@ -74,54 +90,35 @@ export const stopDynamicIslandLyric = async () => {
   await endLyricsActivity()
 }
 
-/**
- * 更新灵动岛歌词字号。设置页调滑块时调用。
- */
 export const setDynamicIslandFontSize = (size: number) => {
   fontSizeNow = size
-  if (dynamicIslandActive) {
-    void updateLiveActivityFontSize(size)
-  }
+  writeFontSize(size)
 }
 
-/**
- * set lyric
- * @param lyric lyric str
- * @param translation lyric translation
- */
 const handleSetLyric = async (lyric: string, translation = '', romalrc = '') => {
   lrcSetLyric(lyric, translation, romalrc)
   await setDesktopLyric(lyric, translation, romalrc)
 }
 
-/**
- * play lyric
- * @param time play time
- */
 export const handlePlay = (time: number) => {
   lrcSyncToTime(time, true)
   void playDesktopLyric(time)
 }
 
-/**
- * pause lyric
- */
 export const pause = () => {
   lrcPause()
   void pauseDesktopLyric()
+  if (dynamicIslandActive) {
+    void getPosition().then((pos) => {
+      updatePlaybackState(playerState.musicInfo.name || '', pos, false)
+    })
+  }
 }
 
-/**
- * stop lyric
- */
 export const stop = () => {
   void handleSetLyric('')
 }
 
-/**
- * set playback rate
- * @param playbackRate playback rate
- */
 export const setPlaybackRate = async (playbackRate: number) => {
   lrcSetPlaybackRate(playbackRate)
   await setDesktopLyricPlaybackRate(playbackRate)
@@ -134,20 +131,12 @@ export const setPlaybackRate = async (playbackRate: number) => {
   }
 }
 
-/**
- * toggle show translation
- * @param isShowTranslation is show translation
- */
 export const toggleTranslation = async (isShowTranslation: boolean) => {
   lrcToggleTranslation(isShowTranslation)
   await toggleDesktopLyricTranslation(isShowTranslation)
   if (playerState.isPlay) play()
 }
 
-/**
- * toggle show roma lyric
- * @param isShowLyricRoma is show roma lyric
- */
 export const toggleRoma = async (isShowLyricRoma: boolean) => {
   lrcToggleRoma(isShowLyricRoma)
   await toggleDesktopLyricRoma(isShowLyricRoma)
@@ -158,6 +147,11 @@ export const play = () => {
   void getPosition().then((position) => {
     handlePlay(position * 1000)
   })
+  if (dynamicIslandActive) {
+    void getPosition().then((pos) => {
+      updatePlaybackState(playerState.musicInfo.name || '', pos, true)
+    })
+  }
 }
 
 export const setLyric = async () => {
@@ -169,6 +163,5 @@ export const setLyric = async () => {
     if (playerState.musicInfo.rlrc) rlrc = playerState.musicInfo.rlrc
     await handleSetLyric(playerState.musicInfo.lrc, tlrc, rlrc)
   }
-
   if (playerState.isPlay) play()
 }

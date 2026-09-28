@@ -9,14 +9,7 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     @objc static func requiresMainQueueSetup() -> Bool { false }
 
     private var currentActivity: Activity<LyricsActivityAttributes>?
-    private var songName = ""
-    private var artist = ""
-    private var currentFontSize = 15
-    private var pendingLyric = ""
-    // 保存当前歌词状态，updateFontSize 时复用（避免覆盖当前播放的歌词/播放状态）
-    private var currentLyricText = ""
-    private var currentNextLyric = ""
-    private var currentIsPlaying = true
+    private let suiteName = "group.com.LX-YMusic.shuhao"
 
     private func endAllActivities() async {
         for activity in Activity<LyricsActivityAttributes>.activities {
@@ -25,21 +18,48 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         currentActivity = nil
     }
 
-    @objc(startLyricsActivity:artist:fontSize:resolve:reject:)
-    func startLyricsActivity(songName: String, artist: String, fontSize: Int,
+    /// 写歌词数据到 AppGroup，Widget Extension 读取后自行解析 LRC + 算换行
+    @objc(writeLyricData:songName:artist:currentTime:duration:isPlaying:)
+    func writeLyricData(lrc: String, songName: String, artist: String,
+                        currentTime: Double, duration: Double, isPlaying: Bool) {
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            NSLog("[LiveActivity] AppGroup unavailable")
+            return
+        }
+        defaults.set(lrc, forKey: "lyric")
+        defaults.set(songName, forKey: "songName")
+        defaults.set(artist, forKey: "artist")
+        defaults.set(currentTime, forKey: "currentTime")
+        defaults.set(duration, forKey: "duration")
+        defaults.set(isPlaying, forKey: "isPlaying")
+        defaults.set(Date(), forKey: "lastUpdate")
+    }
+
+    /// 写字号到 AppGroup
+    @objc(writeFontSize:)
+    func writeFontSize(fontSize: Int) {
+        guard let defaults = UserDefaults(suiteName: suiteName) else { return }
+        defaults.set(fontSize, forKey: "fontSize")
+    }
+
+    @objc(startLyricsActivity:songName:artist:fontSize:resolve:reject:)
+    func startLyricsActivity(lrc: String, songName: String, artist: String, fontSize: Int,
                              resolve: @escaping RCTPromiseResolveBlock,
                              reject: @escaping RCTPromiseRejectBlock) {
-        self.songName = songName
-        self.artist = artist
-        self.currentFontSize = fontSize
+        // 先把歌词数据写入 AppGroup
+        if let defaults = UserDefaults(suiteName: suiteName) {
+            defaults.set(lrc, forKey: "lyric")
+            defaults.set(songName, forKey: "songName")
+            defaults.set(artist, forKey: "artist")
+            defaults.set(fontSize, forKey: "fontSize")
+            defaults.set(Date(), forKey: "lastUpdate")
+        }
 
         Task {
             await endAllActivities()
-            let initLyric = pendingLyric.isEmpty ? songName : pendingLyric
             let attributes = LyricsActivityAttributes(id: UUID().uuidString)
             let state = LyricsActivityAttributes.ContentState(
                 songName: songName, artist: artist,
-                currentLyric: initLyric, nextLyric: "",
                 fontSize: fontSize, isPlaying: true
             )
             do {
@@ -57,41 +77,21 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
     }
 
-    // 换行时调用：只推当前歌词文本，滚动动画由 Widget 内 TimelineView 自己做
-    @objc(updateLyric:nextLyric:isPlaying:)
-    func updateLyric(lyric: String, nextLyric: String, isPlaying: Bool) {
-        let displayLyric = lyric.isEmpty ? songName : lyric
-        guard let activity = currentActivity else {
-            pendingLyric = displayLyric
-            currentLyricText = displayLyric
-            currentNextLyric = nextLyric
-            currentIsPlaying = isPlaying
-            return
-        }
-        pendingLyric = ""
-        currentLyricText = displayLyric
-        currentNextLyric = nextLyric
-        currentIsPlaying = isPlaying
-        let state = LyricsActivityAttributes.ContentState(
-            songName: songName, artist: artist,
-            currentLyric: displayLyric, nextLyric: nextLyric,
-            fontSize: currentFontSize, isPlaying: isPlaying
-        )
-        Task {
-            await activity.update(.init(state: state, staleDate: nil))
-        }
-    }
-
-    @objc(updateFontSize:)
-    func updateFontSize(fontSize: Int) {
-        self.currentFontSize = fontSize
+    /// 更新播放状态（暂停/恢复/切歌时调用）
+    @objc(updatePlaybackState:currentTime:isPlaying:)
+    func updatePlaybackState(songName: String, currentTime: Double, isPlaying: Bool) {
         guard let activity = currentActivity else { return }
-        // 复用当前歌词/播放状态，只改字号（避免调字号时把歌词覆盖成歌名）
+        if let defaults = UserDefaults(suiteName: suiteName) {
+            defaults.set(currentTime, forKey: "currentTime")
+            defaults.set(isPlaying, forKey: "isPlaying")
+            defaults.set(Date(), forKey: "lastUpdate")
+        }
+        // 更新 ContentState（触发 Widget 重新读取 AppGroup）
         let state = LyricsActivityAttributes.ContentState(
-            songName: songName, artist: artist,
-            currentLyric: currentLyricText.isEmpty ? songName : currentLyricText,
-            nextLyric: currentNextLyric,
-            fontSize: fontSize, isPlaying: currentIsPlaying
+            songName: songName,
+            artist: (UserDefaults(suiteName: suiteName)?.string(forKey: "artist")) ?? "",
+            fontSize: (UserDefaults(suiteName: suiteName)?.integer(forKey: "fontSize")) ?? 15,
+            isPlaying: isPlaying
         )
         Task {
             await activity.update(.init(state: state, staleDate: nil))
@@ -102,7 +102,6 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     func endLyricsActivity() {
         Task {
             await endAllActivities()
-            pendingLyric = ""
         }
     }
 

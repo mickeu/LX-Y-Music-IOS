@@ -4,7 +4,7 @@ import { useI18n } from '@/lang'
 import { useSettingValue } from '@/store/setting/hook'
 import { updateSetting } from '@/core/common'
 import { createStyle } from '@/utils/tools'
-import { updateLiveActivityFontSize } from '@/utils/nativeModules/liveActivity'
+import { writeFontSize } from '@/utils/nativeModules/liveActivity'
 import { setDynamicIslandFontSize } from '@/core/lyric'
 import Slider from '../../components/Slider'
 
@@ -15,9 +15,8 @@ export default memo(() => {
   const onChange = (val: number) => {
     const rounded = Math.round(val)
     updateSetting({ 'player.dynamicIslandLyricFontSize': rounded })
-    // 同步到歌词模块（滚动宽度估算依赖它）与原生 Live Activity
     setDynamicIslandFontSize(rounded)
-    void updateLiveActivityFontSize(rounded)
+    void writeFontSize(rounded)
   }
 
   return (

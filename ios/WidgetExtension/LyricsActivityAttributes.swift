@@ -6,8 +6,6 @@ public struct LyricsActivityAttributes: ActivityAttributes {
     public struct ContentState: Hashable, Codable {
         var songName: String
         var artist: String
-        var currentLyric: String
-        var nextLyric: String
         var fontSize: Int
         var isPlaying: Bool
     }

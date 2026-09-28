@@ -22,16 +22,20 @@ widget_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
   # 为 appex 扩展显式指定包类型，确保 Info.plist 中 $(PRODUCT_BUNDLE_PACKAGE_TYPE) 正确解析。
   config.build_settings['PRODUCT_BUNDLE_PACKAGE_TYPE'] = 'XPC!'
+  # AppGroup：Widget 和主 App 共享 UserDefaults，传递歌词数据
+  config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'WidgetExtension/WidgetExtension.entitlements'
 end
 
 # 添加 Swift 源文件
-['LyricsActivityAttributes.swift', 'LyricsLiveActivity.swift', 'LxMusicWidgetBundle.swift'].each do |file|
+['LyricsActivityAttributes.swift', 'LyricsLiveActivity.swift', 'LxMusicWidgetBundle.swift', 'LrcParser.swift', 'ScrollingLyricText.swift'].each do |file|
   ref = widget_group.new_reference(file)
   widget_target.source_build_phase.add_file_reference(ref, true)
 end
 
 # Info.plist 不需要加到 Resources phase（Xcode 会自动处理）
 plist_ref = widget_group.new_reference('Info.plist')
+ent_ref = widget_group.new_reference('WidgetExtension.entitlements')
+main_ent_ref = main_target.project.main_group.new_reference('LxMusicMobile/LxMusicMobile.entitlements')
 
 # 添加 LiveActivityModule 到主 App target
 main_target = project.targets.find { |t| t.name == 'LxMusicMobile' }
@@ -52,6 +56,11 @@ unless attrs_ref
   attrs_ref = widget_group.new_reference('LyricsActivityAttributes.swift')
 end
 main_target.source_build_phase.add_file_reference(attrs_ref, true)
+
+# 给主 App target 也加 AppGroup entitlements
+main_target.build_configurations.each do |config|
+  config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'LxMusicMobile/LxMusicMobile.entitlements'
+end
 
 # 嵌入主 App
 

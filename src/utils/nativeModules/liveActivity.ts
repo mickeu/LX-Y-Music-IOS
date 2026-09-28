@@ -1,9 +1,10 @@
 import { NativeModules, Platform } from 'react-native'
 
 type LiveActivityModuleType = {
-  startLyricsActivity?: (songName: string, artist: string, fontSize: number) => Promise<boolean>
-  updateLyric?: (lyric: string, nextLyric: string, isPlaying: boolean) => Promise<void>
-  updateFontSize?: (fontSize: number) => Promise<void>
+  startLyricsActivity?: (lrc: string, songName: string, artist: string, fontSize: number) => Promise<boolean>
+  writeLyricData?: (lrc: string, songName: string, artist: string, currentTime: number, duration: number, isPlaying: boolean) => void
+  writeFontSize?: (fontSize: number) => void
+  updatePlaybackState?: (songName: string, currentTime: number, isPlaying: boolean) => void
   endLyricsActivity?: () => Promise<void>
   isAvailable?: () => Promise<boolean>
 }
@@ -19,20 +20,32 @@ export const isLiveActivityAvailable = async (): Promise<boolean> => {
   return LiveActivity!.isAvailable!()
 }
 
-export const startLyricsActivity = async (songName: string, artist: string, fontSize: number = 15): Promise<boolean> => {
+// 创建 Live Activity，同时把 LRC 写入 AppGroup
+export const startLyricsActivity = async (
+  lrc: string, songName: string, artist: string, fontSize: number = 15
+): Promise<boolean> => {
   if (!hasMethod('startLyricsActivity')) return false
-  return LiveActivity!.startLyricsActivity!(songName, artist, fontSize)
+  return LiveActivity!.startLyricsActivity!(lrc, songName, artist, fontSize)
 }
 
-// 换行时调用：只推当前歌词文本，滚动动画由 Widget 内 TimelineView 自己做
-export const updateLiveActivityLyric = async (lyric: string, nextLyric: string = '', isPlaying: boolean = true) => {
-  if (!hasMethod('updateLyric')) return
-  return LiveActivity!.updateLyric!(lyric, nextLyric, isPlaying)
+// 写歌词数据到 AppGroup（Widget 自读，不走 Activity.update 推送）
+export const writeLyricData = (
+  lrc: string, songName: string, artist: string,
+  currentTime: number, duration: number, isPlaying: boolean
+) => {
+  if (!hasMethod('writeLyricData')) return
+  LiveActivity!.writeLyricData!(lrc, songName, artist, currentTime, duration, isPlaying)
 }
 
-export const updateLiveActivityFontSize = async (fontSize: number) => {
-  if (!hasMethod('updateFontSize')) return
-  return LiveActivity!.updateFontSize!(fontSize)
+export const writeFontSize = (fontSize: number) => {
+  if (!hasMethod('writeFontSize')) return
+  LiveActivity!.writeFontSize!(fontSize)
+}
+
+// 暂停/恢复/切歌时更新状态
+export const updatePlaybackState = (songName: string, currentTime: number, isPlaying: boolean) => {
+  if (!hasMethod('updatePlaybackState')) return
+  LiveActivity!.updatePlaybackState!(songName, currentTime, isPlaying)
 }
 
 export const endLyricsActivity = async () => {
