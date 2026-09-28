@@ -61,17 +61,16 @@ const PUSH_INTERVAL = 1000    // 推送间隔 ms（iOS Live Activity 限流约 1
 // 当前字号。pushLyricNow 用它估算文字宽度，必须先声明。
 let fontSizeNow = 15
 
-// hook 仅在"切到新行"时被 setPlayTime 调用，用于重置滚动起点。
-// 注意：setPlayTime 对未换行的情况会直接 return，不回调 hook，
-// 因此持续刷新必须靠 startLyricSyncTimer 轮询读取 getCurrentLyricText()。
+// hook 在"切到新行"时被 setPlayTime 调用，立即推送到灵动岛
 const dynamicIslandLyricHook = (line: number, text: string) => {
   if (!settingState.setting['player.isDynamicIslandLyric']) return
   if (!dynamicIslandLyricHookActive) return
-  const next = cleanLyricText(text)
-  if (next !== lastPushedLyric) {
-    lastPushedLyric = next
-    scrollOffset = INITIAL_OFFSET // 新的一句从右侧重新开始
-  }
+  const lyric = cleanLyricText(text)
+  const next = cleanLyricText(getNextLyricText())
+  scrollOffset = INITIAL_OFFSET // 新的一句从右侧重新开始
+  // 立即推送，不等定时器
+  updateLiveActivityLyric(lyric, next, playerState.isPlay, scrollOffset).catch(() => {})
+  lastPushedLyric = lyric
 }
 
 // 把当前歌词 + 滚动偏移推送到实时活动

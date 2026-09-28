@@ -14,6 +14,25 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     private var currentFontSize = 15
     private var pendingLyric = ""
     private var currentScrollOffset: Double = 0
+    private var currentLyricText = ""
+    private var currentNextLyric = ""
+    private var currentIsPlaying = true
+    private var lyricTimer: Timer?
+    private var lyricCallback: (() -> (String, String, Bool, Double))?
+    private var lyricTimer: Timer?
+    private var lyricCallback: (() -> (String, String, Bool, Double))?
+    private var currentLyricText = ""
+    private var currentNextLyric = ""
+    private var currentIsPlaying = true
+    private var currentLyricText = ""
+    private var currentNextLyric = ""
+    private var currentIsPlaying = true
+    private var currentLyricText = ""
+    private var currentNextLyric = ""
+    private var currentIsPlaying = true
+    private var currentLyricText = ""
+    private var currentNextLyric = ""
+    private var currentIsPlaying = true
 
     private func endAllActivities() async {
         for activity in Activity<LyricsActivityAttributes>.activities {
@@ -68,6 +87,9 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
         }
         pendingLyric = ""
         currentScrollOffset = scrollOffset
+        currentLyricText = displayLyric
+        currentNextLyric = nextLyric
+        currentIsPlaying = isPlaying
         let state = LyricsActivityAttributes.ContentState(
             songName: songName, artist: artist,
             currentLyric: displayLyric, nextLyric: nextLyric,
@@ -88,13 +110,18 @@ class LiveActivityModule: NSObject, RCTBridgeModule {
     @objc(updateFontSize:)
     func updateFontSize(fontSize: Int) {
         self.currentFontSize = fontSize
-        guard let activity = currentActivity else { return }
+        guard let activity = currentActivity else {
+            NSLog("[LiveActivity] updateFontSize: no active activity")
+            return
+        }
+        let displayLyric = pendingLyric.isEmpty ? songName : pendingLyric
         let state = LyricsActivityAttributes.ContentState(
             songName: songName, artist: artist,
-            currentLyric: pendingLyric.isEmpty ? songName : pendingLyric,
-            nextLyric: "", fontSize: fontSize, isPlaying: true,
+            currentLyric: displayLyric, nextLyric: "",
+            fontSize: fontSize, isPlaying: true,
             scrollOffset: currentScrollOffset
         )
+        NSLog("[LiveActivity] updateFontSize: \(fontSize)")
         Task {
             await activity.update(.init(state: state, staleDate: nil))
         }
