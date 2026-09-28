@@ -21,6 +21,7 @@ import IsAutoPlayOnReturn from './IsAutoPlayOnReturn'
 import IsDynamicIslandLyric from './IsDynamicIslandLyric'
 import IsLiveActivityEnabled from './IsLiveActivityEnabled'
 import DynamicIslandLyricFontSize from './DynamicIslandLyricFontSize'
+import DynamicIslandAutoHideTime from './DynamicIslandAutoHideTime'
 import { useI18n } from '@/lang'
 
 export default memo(() => {
@@ -41,6 +42,7 @@ export default memo(() => {
       <IsDynamicIslandLyric />
       <IsLiveActivityEnabled />
       <DynamicIslandLyricFontSize />
+      <DynamicIslandAutoHideTime />
       <ClearCache />
       <IsEnableAutoToggleSource />
       <ToggleSourceMaxRetry />

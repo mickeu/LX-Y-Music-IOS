@@ -29,8 +29,11 @@ import {
 let dynamicIslandActive = false
 let fontSizeNow = 15
 let lyricSyncTimer: ReturnType<typeof setInterval> | null = null
-// 停止播放后自动隐藏延时（30 秒）
-const AUTO_HIDE_DELAY = 30_000
+// 停止播放后自动隐藏延时（秒，0=不隐藏）
+const getAutoHideDelay = () => {
+  const sec = settingState.setting['player.dynamicIslandAutoHideTime'] ?? 30
+  return sec * 1000
+}
 let autoHideTimer: ReturnType<typeof setTimeout> | null = null
 
 // 定时写 AppGroup：Widget 自读数据算换行 + 做动画，不走 Activity.update 推送
@@ -97,10 +100,12 @@ export const stopDynamicIslandLyric = async () => {
 // 停止播放后自动隐藏：启动延时计时器
 const startAutoHideTimer = () => {
   clearAutoHideTimer()
+  const delay = getAutoHideDelay()
+  if (delay <= 0) return
   autoHideTimer = setTimeout(async () => {
     autoHideTimer = null
     await stopDynamicIslandLyric()
-  }, AUTO_HIDE_DELAY)
+  }, delay)
 }
 
 // 恢复播放时取消自动隐藏

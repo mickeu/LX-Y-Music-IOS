@@ -102,6 +102,7 @@ const defaultSetting: LX.AppSetting = {
   'player.isDynamicIslandLyric': false,
   'player.isLiveActivityEnabled': false,
   'player.dynamicIslandLyricFontSize': 15,
+  'player.dynamicIslandAutoHideTime': 30,
   'player.autoPlayOnReturn': false,
   'player.enableAutoToggleSource': true,
   'player.toggleSourceMaxRetry': 5,
